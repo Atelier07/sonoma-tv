@@ -8,11 +8,15 @@ LOG=/tmp/airplay-init.log
 echo "$(date) 22-airplay init" >> "$LOG"
 (
   while true; do
+    if [ -f /tmp/tv_suspended ]; then
+      sleep 3
+      continue
+    fi
     if ! pgrep -f "shairport-sync" >/dev/null 2>&1 && ! ps -ef 2>/dev/null | grep -q "[s]hairport-sync"; then
       echo "$(date) launching shairport-sync" >> "$LOG"
       sh /var/lib/webosbrew/start-airplay.sh >> /tmp/airplay.log 2>&1 &
       sleep 5
     fi
-    sleep 10
+    sleep 5
   done
 ) >> "$LOG" 2>&1 &

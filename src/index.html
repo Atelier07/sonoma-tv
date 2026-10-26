@@ -1813,10 +1813,11 @@
       onState(s) {
         if (!s) return;
 
-        if (!s.active) {
+        // Bỏ qua hoặc ẩn ngay nếu không có bài hát, hoặc bridge báo không active, hoặc quá hạn cập nhật
+        if (!s.active || !s.title || (s.updated && (Date.now() - s.updated > 12000))) {
           if (this.visible) {
             if (!this.inactiveSince) this.inactiveSince = Date.now();
-            else if (Date.now() - this.inactiveSince > 2500) this.hide();
+            else if (Date.now() - this.inactiveSince > 1200) this.hide();
           }
           return;
         }
@@ -2259,6 +2260,16 @@
         this.visible = false;
         this.root.classList.remove('visible');
         this.stopRaf();
+        this.lastKey = '';
+        this.lastArtSeq = -1;
+        this.haveProgress = false;
+        this.lastPos = null;
+        this.inactiveSince = 0;
+        this.clearSlots();
+        if (this.titleEl) this.titleEl.textContent = '';
+        if (this.artistEl) this.artistEl.textContent = '';
+        if (this.artEl) { this.artEl.src = ''; this.artEl.classList.remove('loaded'); }
+        if (this.bgEl) { this.bgEl.style.backgroundImage = ''; this.bgEl.classList.remove('loaded'); }
       }
 
       startRaf() {
@@ -2293,14 +2304,22 @@
       if (window.__mtv) {
         window.__mtv.resume();
       }
+      if (window.__np) {
+        window.__np.poll();
+      }
     });
 
     document.addEventListener('visibilitychange', function() {
-      if (!document.hidden && window.__mtv) {
+      if (!document.hidden) {
         if (window.PalmSystem && window.PalmSystem.activate) {
           window.PalmSystem.activate();
         }
-        window.__mtv.resume();
+        if (window.__mtv) {
+          window.__mtv.resume();
+        }
+        if (window.__np) {
+          window.__np.poll();
+        }
       }
     });
   </script>

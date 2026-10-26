@@ -197,40 +197,6 @@ function watchForeground() {
   });
 }
 
-function watchPower() {
-  log('starting power wake subscription watcher...');
-  var pwr = cp.spawn(LUNA, ['-a', 'webosbrew', '-i',
-    'luna://com.webos.service.tvpower/power/getPowerState', '{"subscribe":true}']);
-
-  var pbuf = '';
-  pwr.stdout.on('data', function (data) {
-    pbuf += data.toString();
-    var lines = pbuf.split('\n');
-    pbuf = lines.pop();
-    for (var i = 0; i < lines.length; i++) {
-      var line = lines[i].trim();
-      if (!line) continue;
-      try {
-        var o = JSON.parse(line);
-        var state = o.state || '';
-        log('power state event -> ' + state);
-        if (state === 'Active' || state === 'active') {
-          log('TV woke up (Active) - bootd manages foreground');
-        }
-      } catch (e) {}
-    }
-  });
-
-  pwr.on('exit', function (code) {
-    log('power sub exited code=' + code + ', restarting in 2s');
-    setTimeout(watchPower, 2000);
-  });
-
-  pwr.on('error', function (err) {
-    log('power sub error: ' + (err ? err.message : '-'));
-  });
-}
-
 function onPress() {
   stopBring();
   longFired = false;
@@ -253,7 +219,6 @@ function onRelease() {
 }
 
 watchForeground();
-watchPower();
 
 setInterval(function () {
   for (var f in fds) {
@@ -324,26 +289,33 @@ var lastLyricKey = '';
 var metaBuf = '';
 var prgrBase = 0;   // giây: vị trí bài hát tại lần prgr cuối
 var prgrAt = 0;     // ms: thời điểm nhận prgr cuối (0 = chưa nhận trong phiên)
+var lastFlushAt = 0; // ms: thời điểm nhận pfls (pause/flush)
+
+function resetNowPlaying() {
+  st.active = false;
+  st.title = '';
+  st.artist = '';
+  st.album = '';
+  st.progress = null;
+  st.volume = null;
+  st.lyrics = null;
+  st.lyricsSynced = null;
+  st.hasArt = false;
+  st.artSeq = st.artSeq + 1;
+  artBytes = null;
+  prgrBase = 0;
+  prgrAt = 0;
+  lastFlushAt = 0;
+  lastLyricKey = '';
+  persist();
+}
 
 function restore() {
   try {
     if (fs.existsSync(ART)) { artBytes = fs.readFileSync(ART); }
   } catch (e) {}
-  try {
-    var s = JSON.parse(fs.readFileSync(STATE, 'utf8'));
-    if (s && s.title) {
-      st.title = s.title || '';
-      st.artist = s.artist || '';
-      st.album = s.album || '';
-      st.progress = s.progress || null;
-      st.volume = s.volume || null;
-      st.lyrics = s.lyrics || null;
-      st.lyricsSynced = s.lyricsSynced || null;
-      st.hasArt = s.hasArt || false;
-      st.artSeq = s.artSeq || 0;
-      st.active = s.active || false;
-    }
-  } catch (e) {}
+  // Không khôi phục active=true khi khởi động lại daemon: luôn bắt đầu sạch!
+  resetNowPlaying();
 }
 
 function persist() {
@@ -416,21 +388,26 @@ function handleItem(typeHex, codeHex, dataB64) {
       var s0 = parseFloat(mp[0]), n0 = parseFloat(mp[1]);
       if (isFinite(s0) && isFinite(n0)) { prgrBase = Math.max(0, (n0 - s0) / 44100); prgrAt = Date.now(); }
     }
-    persist();
-  } else if (code === 'pbeg') {
-    // Bắt đầu luồng phát mới -> vị trí về 0.
     st.active = true;
-    prgrBase = 0; prgrAt = Date.now();
+    lastFlushAt = 0;
+    persist();
+  } else if (code === 'pbeg' || code === 'prsm') {
+    // Bắt đầu hoặc tiếp tục luồng phát
+    st.active = true;
+    if (code === 'pbeg') { prgrBase = 0; }
+    prgrAt = Date.now();
+    lastFlushAt = 0;
     persist();
   } else if (code === 'pcst') {
     // 'pcst' = SẮP gửi ảnh bìa (PICT) — KHÔNG phải "bắt đầu bài hát".
     persist();
-  } else if (code === 'pend') {
-    st.active = false;
-    persist();
+  } else if (code === 'pend' || code === 'aend') {
+    log('AirPlay session end (' + code + ') -> resetting NowPlaying');
+    resetNowPlaying();
   } else if (code === 'pfls') {
-    // Audio flushed on seek/pause; tạm dừng nội suy mốc thời gian, không tắt session
+    // Audio flushed on seek/pause; tạm dừng nội suy mốc thời gian, ghi nhận thời điểm dừng
     prgrAt = 0;
+    lastFlushAt = Date.now();
     persist();
   } else if (code === 'PICT') {
     setArt(dataB64);
@@ -495,7 +472,9 @@ function cors() {
 }
 
 var server = http.createServer(function (req, res) {
-  log('HTTP ' + req.method + ' ' + req.url);
+  if (req.url && req.url.indexOf('/state') !== 0) {
+    log('HTTP ' + req.method + ' ' + req.url);
+  }
   try { route(req, res); }
   catch (e) {
     log('HTTP error: ' + (e ? e.message : e));
@@ -534,9 +513,138 @@ process.on('uncaughtException', function (e) {
   try { fs.appendFileSync('/tmp/airplay-bridge.err', (new Date()) + ' ' + e + '\n'); } catch (x) {}
 });
 
+/* ============================================================================
+ * C) POWER LIFECYCLE & AIRPLAY CONNECTION WATCHDOG
+ * ========================================================================== */
+
+var isSuspended = false;
+
+function onSuspend(pwrState) {
+  if (isSuspended) return;
+  isSuspended = true;
+  log('TV entering sleep (' + pwrState + ') -> terminating AirPlay & resetting state');
+
+  // 1. Lockfile prevents 22-airplay daemon babysitter from restarting shairport-sync in sleep
+  try { fs.writeFileSync('/tmp/tv_suspended', '1'); } catch (e) {}
+
+  // 2. Wipe NowPlaying metadata state immediately
+  resetNowPlaying();
+
+  // 3. Close metadata FIFO read stream
+  if (pipeStream) {
+    try { pipeStream.destroy(); } catch (e) {}
+    pipeStream = null;
+  }
+
+  // 4. Forcefully terminate shairport-sync process so TCP port 5001 is immediately closed (FIN/RST).
+  // iPhone will instantly recognize that Sonoma TV is off and disconnect cleanly!
+  cp.exec('killall -9 shairport-sync ld-linux.so.3 2>/dev/null', function () {});
+}
+
+function onResume(pwrState) {
+  if (!isSuspended) return;
+  isSuspended = false;
+  log('TV woke up (' + pwrState + ') -> starting clean AirPlay receiver & resetting state');
+
+  // 1. Remove lockfile
+  try { if (fs.existsSync('/tmp/tv_suspended')) fs.unlinkSync('/tmp/tv_suspended'); } catch (e) {}
+
+  // 2. Ensure state is completely clean
+  resetNowPlaying();
+
+  // 3. Start shairport-sync
+  cp.exec('sh /var/lib/webosbrew/start-airplay.sh >/dev/null 2>&1 &', function () {});
+
+  // 4. Reopen metadata pipe
+  scheduleReopen(1200);
+}
+
+function watchPower() {
+  log('starting power wake/sleep subscription watcher...');
+  var pwr = cp.spawn(LUNA, ['-a', 'webosbrew', '-i',
+    'luna://com.webos.service.tvpower/power/getPowerState', '{"subscribe":true}']);
+
+  var pbuf = '';
+  pwr.stdout.on('data', function (data) {
+    pbuf += data.toString();
+    var lines = pbuf.split('\n');
+    pbuf = lines.pop();
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      try {
+        var o = JSON.parse(line);
+        var state = o.state || '';
+        log('power state event -> ' + state);
+        if (state === 'Active' || state === 'active') {
+          onResume(state);
+        } else if (state === 'Suspend' || state === 'Active Standby' || state === 'standby' ||
+                   state === 'Suspend Prepare' || state === 'Prepare Suspend') {
+          onSuspend(state);
+        }
+      } catch (e) {}
+    }
+  });
+
+  pwr.on('exit', function (code) {
+    log('power sub exited code=' + code + ', restarting in 2s');
+    setTimeout(watchPower, 2000);
+  });
+
+  pwr.on('error', function (err) {
+    log('power sub error: ' + (err ? err.message : '-'));
+  });
+}
+
+function checkAirPlayConnection() {
+  if (isSuspended) return;
+
+  // 1. If playback was paused/flushed for > 8s, transition to inactive so screensaver resumes
+  if (lastFlushAt > 0 && (Date.now() - lastFlushAt > 8000)) {
+    if (st.active) {
+      log('AirPlay playback paused for > 8s -> setting inactive');
+      st.active = false;
+      persist();
+    }
+  }
+
+  // 2. If st.active is true, verify there is an active TCP socket on port 5001
+  if (st.active) {
+    var hasEst = false;
+    try {
+      var tcp = '';
+      try { tcp += fs.readFileSync('/proc/net/tcp', 'utf8'); } catch (e) {}
+      try { tcp += fs.readFileSync('/proc/net/tcp6', 'utf8'); } catch (e) {}
+
+      var lines = tcp.split('\n');
+      for (var i = 0; i < lines.length; i++) {
+        var line = lines[i].trim();
+        if (!line) continue;
+        var parts = line.split(/\s+/);
+        if (parts.length >= 4) {
+          var local = parts[1];
+          var connState = parts[3];
+          // 1389 is port 5001 in hex, 01 is TCP_ESTABLISHED
+          if (local.indexOf(':1389') !== -1 && connState === '01') {
+            hasEst = true;
+            break;
+          }
+        }
+      }
+    } catch (e) {}
+
+    if (!hasEst) {
+      log('Watchdog: No established connection on 5001 -> resetting AirPlay state');
+      resetNowPlaying();
+    }
+  }
+}
+
 restore();
 persist();
 openPipe();
+watchPower();
+setInterval(checkAirPlayConnection, 2000);
 server.listen(PORT, '127.0.0.1', function () {
   log('AirPlay bridge listening on 127.0.0.1:' + PORT);
 });

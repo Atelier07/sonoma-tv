@@ -37,7 +37,7 @@ scp -i "$SSH_KEY" -P 22 -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rs
   "root@$TV_IP:/var/lib/webosbrew/"
 
 ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no -o HostKeyAlgorithms=+ssh-rsa -o PubkeyAcceptedKeyTypes=+ssh-rsa "root@$TV_IP" \
-  "cp /var/lib/webosbrew/10-debloat /var/lib/webosbrew/init.d/10-debloat && cp /var/lib/webosbrew/20-aerial-launcher /var/lib/webosbrew/init.d/20-aerial-launcher && cp /var/lib/webosbrew/21-aerial-daemon /var/lib/webosbrew/init.d/21-aerial-daemon && cp /var/lib/webosbrew/22-airplay /var/lib/webosbrew/init.d/22-airplay && chmod +x /var/lib/webosbrew/init.d/* /var/lib/webosbrew/start-airplay.sh; killall -9 ld-linux.so.3 2>/dev/null || true"
+  "cp /var/lib/webosbrew/10-debloat /var/lib/webosbrew/init.d/10-debloat && cp /var/lib/webosbrew/20-aerial-launcher /var/lib/webosbrew/init.d/20-aerial-launcher && cp /var/lib/webosbrew/21-aerial-daemon /var/lib/webosbrew/init.d/21-aerial-daemon && cp /var/lib/webosbrew/22-airplay /var/lib/webosbrew/init.d/22-airplay && chmod +x /var/lib/webosbrew/init.d/* /var/lib/webosbrew/start-airplay.sh; sh /var/lib/webosbrew/init.d/21-aerial-daemon; killall -9 ld-linux.so.3 2>/dev/null || true"
 
 echo "=== 2. Reloading TV page via Chrome Remote Debugging (port 9998) ==="
 python3 "$LOCAL_DIR/scripts/reload_cdp.py"
