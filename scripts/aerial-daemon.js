@@ -21,6 +21,7 @@
 var fs = require('fs');
 var cp = require('child_process');
 var http = require('http');
+var https = require('https');
 
 /* ============================================================================
  * A) HOME WATCH
@@ -179,7 +180,7 @@ function watchForeground() {
             } else {
               log('STOCK_HOME allowed by hotkey');
             }
-          } else if (id === 'airplay' || id === 'com.webos.app.voiceview' || id === 'com.webos.app.screensaver') {
+          } else if (id === 'airplay' || id === 'com.webos.app.screensaver') {
             log('blocked rogue overlay (' + id + ') -> closing and returning to ' + APP);
             lunaClose(id, 'blocked');
             bringBack();
@@ -232,10 +233,17 @@ setInterval(function () {
       var type = keyBuf.readUInt16LE(off + 8);
       var code = keyBuf.readUInt16LE(off + 10);
       var val = keyBuf.readInt32LE(off + 12);
-      if (type === EV_KEY && code === HOME_CODE) {
-        log('HOME773 dev=' + f + ' val=' + val);
-        if (val === 1) onPress();
-        else if (val === 0) onRelease();
+      if (type === EV_KEY) {
+        if (code === HOME_CODE) {
+          log('HOME773 dev=' + f + ' val=' + val);
+          if (val === 1) onPress();
+          else if (val === 0) onRelease();
+        } else if (code === 412 && val === 1) {
+          log('BLUE_KEY_412 pressed -> show voice search helper toast');
+          showToast('🎙️ Giọng nói: Mở http://192.168.1.6:8899/voice trên điện thoại để nói');
+        } else {
+          log('KEY dev=' + f + ' code=' + code + ' val=' + val);
+        }
       }
     }
   }
@@ -470,6 +478,175 @@ function cors() {
   return { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
 }
 
+/* ============================================================================
+ * C) GROQ WHISPER TURBO & YOUTUBE DEEPLINK VOICE SEARCH
+ * ========================================================================== */
+var GROQ_KEY_FILE = '/var/lib/webosbrew/groq_api_key';
+var GROQ_API_KEY = '';
+try { GROQ_API_KEY = fs.readFileSync(GROQ_KEY_FILE, 'utf8').trim(); } catch (e) {}
+var YOUTUBE_APP = 'youtube.leanback.v4';
+
+function showToast(msg) {
+  try {
+    fs.writeFileSync('/tmp/voice_toast_msg', String(msg));
+  } catch (e) {}
+}
+
+function launchYouTubeSearch(query) {
+  log('launchYouTubeSearch: ' + query);
+  try {
+    fs.writeFileSync('/tmp/youtube_voice_query', String(query));
+  } catch (e) {
+    log('Failed to write voice query: ' + e.message);
+  }
+}
+
+function transcribeWithGroq(audioBuffer, mimeType, callback) {
+  var boundary = '----WebKitFormBoundary' + Math.random().toString(36).substring(2);
+  var filename = 'voice.webm';
+  if (mimeType && (mimeType.indexOf('mp4') !== -1 || mimeType.indexOf('m4a') !== -1)) filename = 'voice.m4a';
+  else if (mimeType && mimeType.indexOf('wav') !== -1) filename = 'voice.wav';
+
+  var parts = [];
+  parts.push('--' + boundary + '\r\nContent-Disposition: form-data; name="model"\r\n\r\nwhisper-large-v3-turbo\r\n');
+  parts.push('--' + boundary + '\r\nContent-Disposition: form-data; name="language"\r\n\r\nvi\r\n');
+  parts.push('--' + boundary + '\r\nContent-Disposition: form-data; name="file"; filename="' + filename + '"\r\nContent-Type: ' + (mimeType || 'audio/webm') + '\r\n\r\n');
+
+  var headerBuf = new Buffer(parts.join(''));
+  var footerBuf = new Buffer('\r\n--' + boundary + '--\r\n');
+  var totalLen = headerBuf.length + audioBuffer.length + footerBuf.length;
+
+  var req = https.request({
+    hostname: 'api.groq.com',
+    port: 443,
+    path: '/openai/v1/audio/transcriptions',
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + GROQ_API_KEY,
+      'Content-Type': 'multipart/form-data; boundary=' + boundary,
+      'Content-Length': totalLen,
+      'User-Agent': 'curl/7.68.0'
+    }
+  }, function(res) {
+    var data = '';
+    res.on('data', function(c) { data += c; });
+    res.on('end', function() {
+      try {
+        var parsed = JSON.parse(data);
+        if (parsed.text) {
+          callback(null, parsed.text.trim());
+        } else {
+          callback(new Error(parsed.error ? parsed.error.message : data));
+        }
+      } catch (e) {
+        callback(e);
+      }
+    });
+  });
+
+  req.on('error', function(e) {
+    callback(e);
+  });
+
+  req.write(headerBuf);
+  req.write(audioBuffer);
+  req.write(footerBuf);
+  req.end();
+}
+
+var VOICE_HTML = '<!DOCTYPE html><html lang="vi"><head><meta charset="utf-8">' +
+'<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">' +
+'<title>Sonoma TV Voice Search</title>' +
+'<style>' +
+'* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }' +
+'body { margin: 0; padding: 0; background: #0b0c10; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; text-align: center; }' +
+'.card { background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 28px; padding: 40px 24px; width: 90%; max-width: 380px; box-shadow: 0 20px 40px rgba(0,0,0,0.5); }' +
+'.title { font-size: 22px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.5px; }' +
+'.subtitle { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 36px; }' +
+'.mic-btn { width: 110px; height: 110px; border-radius: 50%; background: linear-gradient(135deg, #0071e3, #00c6ff); border: none; outline: none; cursor: pointer; display: flex; align-items: center; justify-content: center; margin: 0 auto 30px; box-shadow: 0 10px 25px rgba(0, 113, 227, 0.4); transition: transform 0.15s, box-shadow 0.15s; }' +
+'.mic-btn:active, .mic-btn.recording { transform: scale(0.92); background: linear-gradient(135deg, #ff3b30, #ff9500); box-shadow: 0 0 35px rgba(255, 59, 48, 0.7); animation: pulse 1.2s infinite alternate; }' +
+'@keyframes pulse { 0% { transform: scale(0.92); box-shadow: 0 0 20px rgba(255, 59, 48, 0.5); } 100% { transform: scale(1.02); box-shadow: 0 0 40px rgba(255, 59, 48, 0.9); } }' +
+'.mic-icon { width: 44px; height: 44px; fill: #fff; }' +
+'.status { font-size: 15px; font-weight: 500; min-height: 24px; color: #a1a1a6; }' +
+'.status.active { color: #2997ff; }' +
+'.status.error { color: #ff453a; }' +
+'.status.success { color: #30d158; font-weight: 600; }' +
+'.result { margin-top: 15px; font-size: 18px; font-weight: 600; color: #fff; min-height: 26px; }' +
+'.badge { margin-top: 24px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: rgba(255,255,255,0.06); border-radius: 12px; font-size: 11px; color: rgba(255,255,255,0.4); }' +
+'</style></head><body>' +
+'<div class="card">' +
+'  <div class="title">Sonoma TV</div>' +
+'  <div class="subtitle">Tìm kiếm YouTube bằng giọng nói</div>' +
+'  <button class="mic-btn" id="btn">' +
+'    <svg class="mic-icon" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>' +
+'  </button>' +
+'  <input type="file" id="fileMic" accept="audio/*" capture="microphone" style="display:none">' +
+'  <div class="status" id="st">Chạm vào nút để nói</div>' +
+'  <div class="result" id="res"></div>' +
+'  <div class="badge"><span>⚡ Powered by Groq Whisper Turbo</span></div>' +
+'</div>' +
+'<script>' +
+'var btn = document.getElementById("btn");' +
+'var st = document.getElementById("st");' +
+'var res = document.getElementById("res");' +
+'var fileMic = document.getElementById("fileMic");' +
+'var recorder = null; var stream = null; var chunks = []; var isRecording = false;' +
+'async function startRec() {' +
+'  chunks = [];' +
+'  try {' +
+'    if (!stream) stream = await navigator.mediaDevices.getUserMedia({ audio: true });' +
+'    var mime = MediaRecorder.isTypeSupported("audio/webm") ? "audio/webm" : (MediaRecorder.isTypeSupported("audio/mp4") ? "audio/mp4" : "");' +
+'    recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);' +
+'    recorder.ondataavailable = function(e) { if (e.data.size > 0) chunks.push(e.data); };' +
+'    recorder.onstop = uploadAudio;' +
+'    recorder.start();' +
+'    isRecording = true;' +
+'    btn.classList.add("recording");' +
+'    st.className = "status active";' +
+'    st.textContent = "Đang nghe... Chạm lại để tìm kiếm";' +
+'    res.textContent = "";' +
+'  } catch(err) { fileMic.click(); }' +
+'}' +
+'function stopRec() {' +
+'  if (recorder && isRecording) {' +
+'    recorder.stop();' +
+'    isRecording = false;' +
+'    btn.classList.remove("recording");' +
+'    st.className = "status";' +
+'    st.textContent = "Đang gửi tới Groq...";' +
+'  }' +
+'}' +
+'btn.addEventListener("click", function() {' +
+'  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { fileMic.click(); return; }' +
+'  if (isRecording) stopRec(); else startRec();' +
+'});' +
+'fileMic.addEventListener("change", function(e) {' +
+'  if (e.target.files && e.target.files[0]) {' +
+'    st.className = "status"; st.textContent = "Đang gửi tới Groq...";' +
+'    var f = e.target.files[0]; sendBlob(f, f.type || "audio/mp4");' +
+'  }' +
+'});' +
+'function uploadAudio() {' +
+'  var mime = (recorder && recorder.mimeType) || "audio/webm";' +
+'  var blob = new Blob(chunks, { type: mime });' +
+'  sendBlob(blob, mime);' +
+'}' +
+'async function sendBlob(blob, mime) {' +
+'  try {' +
+'    var r = await fetch("/api/voice", { method: "POST", headers: { "Content-Type": mime }, body: blob });' +
+'    var d = await r.json();' +
+'    if (d.success && d.text) {' +
+'      st.className = "status success";' +
+'      st.textContent = "✓ Đã mở YouTube trên TV:";' +
+'      res.textContent = d.text;' +
+'    } else {' +
+'      st.className = "status error";' +
+'      st.textContent = "Lỗi: " + (d.error || "Không nhận dạng được");' +
+'    }' +
+'  } catch(e) { st.className = "status error"; st.textContent = "Lỗi kết nối: " + e.message; }' +
+'}' +
+'</script></body></html>';
+
 var server = http.createServer(function (req, res) {
   if (req.url && req.url.indexOf('/state') !== 0) {
     log('HTTP ' + req.method + ' ' + req.url);
@@ -502,6 +679,35 @@ function route(req, res) {
     // trên CPU yếu (fork chậm vì áp lực RAM/swap) làm nghẽn event loop.
     res.writeHead(200, cors());
     res.end('client-side');
+  } else if (u.indexOf('/voice') === 0 && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(VOICE_HTML);
+  } else if (u.indexOf('/api/voice') === 0 && req.method === 'POST') {
+    var chunks = [];
+    req.on('data', function (c) { chunks.push(c); });
+    req.on('end', function () {
+      var audioBuf = Buffer.concat(chunks);
+      var ctype = req.headers['content-type'] || 'audio/webm';
+      log('Received voice upload: ' + audioBuf.length + ' bytes (' + ctype + ')');
+      if (audioBuf.length < 100) {
+        res.writeHead(400, cors());
+        res.end(JSON.stringify({ error: 'Audio too short' }));
+        return;
+      }
+      transcribeWithGroq(audioBuf, ctype, function (err, text) {
+        if (err || !text) {
+          log('Groq error: ' + (err ? err.message : 'empty text'));
+          res.writeHead(500, cors());
+          res.end(JSON.stringify({ error: err ? err.message : 'Transcription failed' }));
+          return;
+        }
+        log('Groq transcribed: "' + text + '" -> launching YouTube');
+        launchYouTubeSearch(text);
+        showToast('🎙️ Tìm YouTube: "' + text + '"');
+        res.writeHead(200, cors());
+        res.end(JSON.stringify({ success: true, text: text }));
+      });
+    });
   } else {
     res.writeHead(200, cors());
     res.end('airplay-bridge ok');
@@ -646,7 +852,7 @@ persist();
 openPipe();
 watchPower();
 setInterval(checkAirPlayConnection, 2000);
-server.listen(PORT, '127.0.0.1', function () {
-  log('AirPlay bridge listening on 127.0.0.1:' + PORT);
+server.listen(PORT, '0.0.0.0', function () {
+  log('AirPlay bridge & Voice server listening on 0.0.0.0:' + PORT);
 });
 try { fs.writeFileSync('/tmp/airplay-bridge.pid', String(process.pid)); } catch (e) {}
