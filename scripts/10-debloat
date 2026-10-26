@@ -19,7 +19,9 @@ sysctl -w vm.vfs_cache_pressure=50 2>/dev/null || true
 sysctl -w vm.dirty_ratio=10 2>/dev/null || true
 sysctl -w vm.dirty_background_ratio=5 2>/dev/null || true
 
-# 3. Stop Preloaded Browser & Stock AirPlay / HomeKit (Prevents duplicate AirPlay receivers)
+# 3. Stop Preloaded Browser & Stock AirPlay / HomeKit (Prevents duplicate AirPlay receivers & black screens)
+mkdir -p /var/lib/webosbrew/empty_dir
+mount --bind /var/lib/webosbrew/empty_dir /usr/palm/applications/airplay 2>/dev/null || true
 initctl stop webos-preload-manager 2>/dev/null || true
 initctl stop airplay-adaptor 2>/dev/null || true
 killall -9 airplay homekit 2>/dev/null || true

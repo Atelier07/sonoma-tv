@@ -179,6 +179,10 @@ function watchForeground() {
             } else {
               log('STOCK_HOME allowed by hotkey');
             }
+          } else if (id === 'airplay' || id === 'com.webos.app.voiceview' || id === 'com.webos.app.screensaver') {
+            log('blocked rogue overlay (' + id + ') -> closing and returning to ' + APP);
+            lunaClose(id, 'blocked');
+            bringBack();
           } else if (id === APP) {
             stockHomeAllowed = false;
           }
