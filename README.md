@@ -4,9 +4,9 @@ Dự án thay thế launcher mặc định trên Smart TV LG bằng giao diện 
 
 ---
 
-## 📸 Hình ảnh thực tế (Showcase)
+## Showcase
 
-### 1. Giao diện phát nhạc AirPlay & Lời bài hát đồng bộ thời gian thực
+### 1. Giao diện phát nhạc AirPlay
 Bìa album sắc nét, tên bài hát và lời chạy chữ đồng bộ tự động nổi trên nền video 4K:
 ![AirPlay La La Land](docs/screenshots/lalaland_chorus.jpg)
 
@@ -25,23 +25,14 @@ Thanh Dock kính tối bo cong, chứa các ứng dụng cài trên TV (YouTube,
 - **Bắt phím HOME trên Remote:**
   - Nhấn nhanh: Quay về Sonoma TV launcher.
   - Nhấn giữ 3 giây: Mở lại thanh Ribbon gốc của LG khi cần cài đặt hệ thống.
+  - bạn cần kích hoạt tính năng quickstart trên tivi của mình để đạt được tốc độ nhanh nhất
 
-### 2. Tuyển chọn 83 video nền 4K Apple Aerial (Không rác đô thị)
+### 2. Tuyển chọn 83 video nền 4K Apple Aerial
 - Sử dụng cơ chế giải mã phần cứng **VPU Hole-Punching** của webOS: video chạy trực tiếp trên chip giải mã, không tốn tài nguyên CPU/GPU của giao diện.
 - Stream trực tiếp qua mạng LAN, không tốn bộ nhớ flash eMMC của TV.
-- **Đã thanh lọc kỹ lưỡng:**
-  - Giữ lại toàn bộ **21 góc quay từ Trạm vũ trụ Quốc tế ISS** (Australia, Cực quang Nam Cực, Africa Night, Sahara...).
-  - Giữ lại các cảnh thiên nhiên kỳ vĩ: *Yosemite, Iceland, Patagonia, Hawaii, Grand Canyon, Greenland, Scotland...*
-  - Giữ lại các cảnh đại dương: *Cá voi lưng gù, Cá heo Costa Rica, Rạn san hô Biển Đỏ, Sóng biển Tahiti...*
-  - **Loại bỏ sạch 31 video đô thị/kẹt xe** (Los Angeles đường cao tốc, San Francisco sương mù, New York, London, Dubai...).
-- Cơ chế **2 tầng video ngầm** giúp chuyển cảnh mượt mà, không bị giật hay cắt đen màn hình.
 
 ### 3. Bộ thu AirPlay (Sonoma TV) & Đồng bộ lời bài hát
-- Tích hợp trình thu âm thanh AirPlay không nén (Shairport-Sync) đặt tên là **Sonoma TV**.
-- **Đã khắc phục lỗi đứt quãng / mất tiếng:**
-  - Chuyển thuật toán nội suy sang `basic interpolation` (thay vì `soxr` nặng nề) để giảm tải cho chip ARM Cortex-A53 của TV.
-  - Mở rộng bộ đệm ALSA lên `0.35s` (`audio_backend_buffer_desired_length_in_seconds`) giúp âm thanh mượt mà, không bị giật khi mạng Wi-Fi biến động.
-  - Bật `disable_standby_mode = "always"` giữ DAC âm thanh luôn mở, chống hiện tượng nấc cụt hoặc mất tiếng đầu bài.
+- Tích hợp trình thu âm thanh AirPlay không nén
 - Tự động hiển thị bìa album, tên bài hát và lời bài hát chạy chữ từng câu chuẩn phong cách Apple Music.
 
 ### 4. Tinh chỉnh hệ thống & Debloat (10-debloat)
