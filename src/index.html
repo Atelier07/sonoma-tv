@@ -1813,11 +1813,11 @@
       onState(s) {
         if (!s) return;
 
-        // Bỏ qua hoặc ẩn ngay nếu không có bài hát, hoặc bridge báo không active, hoặc quá hạn cập nhật
-        if (!s.active || !s.title || (s.updated && (Date.now() - s.updated > 12000))) {
+        // Bỏ qua hoặc ẩn nếu không active hoặc không có tên bài
+        if (!s.active || !s.title) {
           if (this.visible) {
             if (!this.inactiveSince) this.inactiveSince = Date.now();
-            else if (Date.now() - this.inactiveSince > 1200) this.hide();
+            else if (Date.now() - this.inactiveSince > 2000) this.hide();
           }
           return;
         }

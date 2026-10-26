@@ -289,7 +289,6 @@ var lastLyricKey = '';
 var metaBuf = '';
 var prgrBase = 0;   // giây: vị trí bài hát tại lần prgr cuối
 var prgrAt = 0;     // ms: thời điểm nhận prgr cuối (0 = chưa nhận trong phiên)
-var lastFlushAt = 0; // ms: thời điểm nhận pfls (pause/flush)
 
 function resetNowPlaying() {
   st.active = false;
@@ -305,7 +304,6 @@ function resetNowPlaying() {
   artBytes = null;
   prgrBase = 0;
   prgrAt = 0;
-  lastFlushAt = 0;
   lastLyricKey = '';
   persist();
 }
@@ -389,14 +387,12 @@ function handleItem(typeHex, codeHex, dataB64) {
       if (isFinite(s0) && isFinite(n0)) { prgrBase = Math.max(0, (n0 - s0) / 44100); prgrAt = Date.now(); }
     }
     st.active = true;
-    lastFlushAt = 0;
     persist();
   } else if (code === 'pbeg' || code === 'prsm') {
     // Bắt đầu hoặc tiếp tục luồng phát
     st.active = true;
     if (code === 'pbeg') { prgrBase = 0; }
     prgrAt = Date.now();
-    lastFlushAt = 0;
     persist();
   } else if (code === 'pcst') {
     // 'pcst' = SẮP gửi ảnh bìa (PICT) — KHÔNG phải "bắt đầu bài hát".
@@ -405,9 +401,8 @@ function handleItem(typeHex, codeHex, dataB64) {
     log('AirPlay session end (' + code + ') -> resetting NowPlaying');
     resetNowPlaying();
   } else if (code === 'pfls') {
-    // Audio flushed on seek/pause; tạm dừng nội suy mốc thời gian, ghi nhận thời điểm dừng
+    // Audio flushed on seek/pause; tạm dừng nội suy mốc thời gian
     prgrAt = 0;
-    lastFlushAt = Date.now();
     persist();
   } else if (code === 'PICT') {
     setArt(dataB64);
@@ -596,19 +591,12 @@ function watchPower() {
   });
 }
 
+var noConnCount = 0;
+
 function checkAirPlayConnection() {
   if (isSuspended) return;
 
-  // 1. If playback was paused/flushed for > 8s, transition to inactive so screensaver resumes
-  if (lastFlushAt > 0 && (Date.now() - lastFlushAt > 8000)) {
-    if (st.active) {
-      log('AirPlay playback paused for > 8s -> setting inactive');
-      st.active = false;
-      persist();
-    }
-  }
-
-  // 2. If st.active is true, verify there is an active TCP socket on port 5001
+  // Nếu st.active = true, xác nhận có kết nối TCP thực tế tới cổng 5001
   if (st.active) {
     var hasEst = false;
     try {
@@ -624,7 +612,7 @@ function checkAirPlayConnection() {
         if (parts.length >= 4) {
           var local = parts[1];
           var connState = parts[3];
-          // 1389 is port 5001 in hex, 01 is TCP_ESTABLISHED
+          // 1389 là port 5001 hex, 01 là TCP_ESTABLISHED
           if (local.indexOf(':1389') !== -1 && connState === '01') {
             hasEst = true;
             break;
@@ -634,9 +622,18 @@ function checkAirPlayConnection() {
     } catch (e) {}
 
     if (!hasEst) {
-      log('Watchdog: No established connection on 5001 -> resetting AirPlay state');
-      resetNowPlaying();
+      noConnCount++;
+      // Chỉ khi mất kết nối liên tục 2 lần (4 giây) mới reset để tránh jitter mạng ngắn hạn
+      if (noConnCount >= 2) {
+        log('Watchdog: No established connection on 5001 for 4s -> resetting AirPlay state');
+        resetNowPlaying();
+        noConnCount = 0;
+      }
+    } else {
+      noConnCount = 0;
     }
+  } else {
+    noConnCount = 0;
   }
 }
 
