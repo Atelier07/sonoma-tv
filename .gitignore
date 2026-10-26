@@ -1,3 +1,4 @@
 .DS_Store
 *.log
-docs/screenshots/live_capture.jpg
+docs/screenshots/live_*
+docs/screenshots/tv_screenshot.png
