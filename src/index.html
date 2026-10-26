@@ -614,24 +614,37 @@
 
     .np-art.loaded { opacity: 1; transform: scale3d(1, 1, 1); }
 
-    /* Tiêu đề: chỉ hiện một nhịp khi đổi bài rồi tan dần (tránh rối khi chuyển bài) */
+    /* Tiêu đề & Nghệ sĩ: hiển thị sang trọng dưới ảnh bìa chuẩn tvOS */
     .np-meta {
-      margin-top: 32px;
+      margin-top: 24px;
       max-width: 44vh;
       opacity: 0;
-      transform: translate3d(0, 12px, 0);
+      transform: translate3d(0, 10px, 0);
       transition: opacity 0.6s var(--smooth), transform 0.6s var(--smooth);
     }
 
     .np-meta.show { opacity: 1; transform: translate3d(0, 0, 0); }
 
     .np-title {
-      font-size: 2.5rem;
-      font-weight: 600;
-      letter-spacing: -0.6px;
-      line-height: 1.15;
+      font-size: 2.3rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
       color: #ffffff;
       text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .np-artist {
+      font-size: 1.4rem;
+      font-weight: 500;
+      letter-spacing: -0.2px;
+      line-height: 1.25;
+      color: rgba(255, 255, 255, 0.68);
+      margin-top: 6px;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.5);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -731,6 +744,7 @@
         </div>
         <div class="np-meta" id="npMeta">
           <div id="npTitle" class="np-title"></div>
+          <div id="npArtist" class="np-artist"></div>
         </div>
       </div>
       <div class="np-right">
@@ -1741,6 +1755,7 @@
         this.artEl = document.getElementById('npArt');
         this.bgEl = document.getElementById('npBg');
         this.titleEl = document.getElementById('npTitle');
+        this.artistEl = document.getElementById('npArtist');
         this.metaEl = document.getElementById('npMeta');
         this.lyricsEl = document.getElementById('npLyrics');
         this.trackEl = document.getElementById('npLyricsTrack');
@@ -1813,6 +1828,7 @@
           this.lastPos = null;
           this.haveProgress = false;
           this.titleEl.textContent = s.title || '';
+          if (this.artistEl) this.artistEl.textContent = s.artist || '';
           this.flashMeta();
           this.fetchLyrics(s.title, s.artist);
           this.show();
@@ -2003,15 +2019,14 @@
           });
       }
 
-      // Tiêu đề hiện một nhịp khi đổi bài rồi tan (tránh rối/rườm khi chuyển bài).
+      // Hiển thị mượt mà tiêu đề & ca sĩ khi chuyển bài
       flashMeta() {
-        var self = this;
         if (!this.metaEl) return;
-        this.metaEl.classList.add('show');
-        if (this.metaTimer) clearTimeout(this.metaTimer);
-        this.metaTimer = setTimeout(function() {
-          if (self.metaEl) self.metaEl.classList.remove('show');
-        }, 3800);
+        this.metaEl.classList.remove('show');
+        var self = this;
+        requestAnimationFrame(function() {
+          if (self.metaEl) self.metaEl.classList.add('show');
+        });
       }
 
       clearSlots() {

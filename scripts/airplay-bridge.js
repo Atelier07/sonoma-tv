@@ -76,71 +76,29 @@ function sanitize(s) {
 function setArt(b64) {
   try {
     var b = new Buffer(b64, 'base64');
-    artBytes = b;
-    fs.writeFileSync(ART, b);
-    st.hasArt = true;
-    st.artSeq = st.artSeq + 1;
+    if (b && b.length > 0) {
+      artBytes = b;
+      fs.writeFileSync(ART, b);
+      st.hasArt = true;
+      st.artSeq = st.artSeq + 1;
+    }
   } catch (e) {
     st.hasArt = false;
   }
 }
 
-function curlJson(url, cb, attempt) {
-  attempt = attempt || 0;
-  var cmd = CURL + ' -s --max-time 8 -A "airplay-bridge/1.0" -H "Lrclib-Client: airplay-bridge/1.0" "' + url + '"';
-  cp.exec(cmd, function (err, stdout) {
-    var arr = null, valid = false;
-    if (!err && stdout) {
-      try { arr = JSON.parse(stdout); valid = true; } catch (e) { valid = false; }
-    }
-    // JSON hợp lệ (kể cả mảng rỗng `[]`) = câu trả lời cuối cùng, KHÔNG retry.
-    // Chỉ retry khi curl lỗi/không trả JSON (vd 503 ServerOverloaded).
-    if (valid) { cb(arr); return; }
-    if (attempt < 4) { setTimeout(function () { curlJson(url, cb, attempt + 1); }, 2000); }
-    else { cb(null); }
-  });
-}
-
-function pickLyrics(arr, key) {
-  if (lastLyricKey !== key) { return; }
-  var best = null, i;
-  for (i = 0; i < arr.length; i++) { if (arr[i].syncedLyrics) { best = arr[i]; break; } }
-  if (!best) { for (i = 0; i < arr.length; i++) { if (arr[i].plainLyrics) { best = arr[i]; break; } } }
-  if (!best) { best = arr[0]; }
-  st.lyrics = best.plainLyrics || null;
-  st.lyricsSynced = best.syncedLyrics || null;
-  persist();
-}
-
-function fetchLyrics(title, artist) {
-  title = sanitize(title);
-  artist = sanitize(artist);
-  if (!title) { return; }
-  var key = title + '\u0001' + artist;
-  if (key === lastLyricKey) { return; }
-  lastLyricKey = key;
-  st.lyrics = null;
-  st.lyricsSynced = null;
-  persist();
-  var url1 = 'https://lrclib.net/api/search?track_name=' + encodeURIComponent(title) + (artist ? '&artist_name=' + encodeURIComponent(artist) : '');
-  var url2 = 'https://lrclib.net/api/search?q=' + encodeURIComponent(title + ' ' + artist);
-  curlJson(url1, function (arr) {
-    if (arr && arr.length) { pickLyrics(arr, key); return; }
-    curlJson(url2, function (arr2) {
-      if (arr2 && arr2.length) { pickLyrics(arr2, key); }
-      else { if (lastLyricKey === key) { persist(); } }
-    }, 0);
-  }, 0);
-}
-
 function handleItem(typeHex, codeHex, dataB64) {
   var code = hexToAscii(codeHex);
   if (code === 'minm') {
-    st.title = decodeData(dataB64);
-    st.active = true;
-    st.hasArt = false;
-    st.artSeq = st.artSeq + 1;
-    persist();
+    var newTitle = decodeData(dataB64);
+    if (newTitle && newTitle !== st.title) {
+      st.title = newTitle;
+      st.active = true;
+      st.hasArt = false;
+      artBytes = null;
+      st.artSeq = st.artSeq + 1;
+      persist();
+    }
   } else if (code === 'asar') {
     st.artist = decodeData(dataB64);
     persist();
@@ -162,12 +120,20 @@ function handleItem(typeHex, codeHex, dataB64) {
       if (isFinite(s0) && isFinite(n0)) { prgrBase = Math.max(0, (n0 - s0) / 44100); prgrAt = Date.now(); }
     }
     persist();
-  } else if (code === 'pcst' || code === 'pbeg') {
+  } else if (code === 'pbeg') {
+    // Bắt đầu luồng phát mới -> vị trí về 0.
     st.active = true;
     prgrBase = 0; prgrAt = Date.now();
     persist();
-  } else if (code === 'pcen' || code === 'pend' || code === 'pfls') {
-    if (code !== 'pcen') { st.active = false; }
+  } else if (code === 'pcst') {
+    // 'pcst' = SẮP gửi ảnh bìa (PICT) — KHÔNG phải "bắt đầu bài hát".
+    persist();
+  } else if (code === 'pend') {
+    st.active = false;
+    persist();
+  } else if (code === 'pfls') {
+    // Audio flushed on seek/pause; tạm dừng nội suy mốc thời gian, không tắt session
+    prgrAt = 0;
     persist();
   } else if (code === 'PICT') {
     setArt(dataB64);
@@ -201,12 +167,30 @@ function parseBuf() {
   if (buf.length > 4000000) { buf = ''; }
 }
 
+var pipeStream = null;
+var reopenTimer = null;
+function scheduleReopen(delay) {
+  if (reopenTimer) return;
+  reopenTimer = setTimeout(function () {
+    reopenTimer = null;
+    openPipe();
+  }, delay || 500);
+}
+
 function openPipe() {
-  var s = fs.createReadStream(PIPE, { encoding: 'utf8' });
-  s.on('data', function (chunk) { buf += chunk; parseBuf(); });
-  s.on('error', function () { setTimeout(openPipe, 1000); });
-  s.on('end', function () { setTimeout(openPipe, 300); });
-  s.on('close', function () { setTimeout(openPipe, 300); });
+  if (pipeStream) {
+    try { pipeStream.destroy(); } catch (e) {}
+    pipeStream = null;
+  }
+  try {
+    pipeStream = fs.createReadStream(PIPE, { encoding: 'utf8' });
+    pipeStream.on('data', function (chunk) { buf += chunk; parseBuf(); });
+    pipeStream.on('error', function () { scheduleReopen(1000); });
+    pipeStream.on('end', function () { scheduleReopen(300); });
+    pipeStream.on('close', function () { scheduleReopen(300); });
+  } catch (e) {
+    scheduleReopen(1000);
+  }
 }
 
 function cors() {

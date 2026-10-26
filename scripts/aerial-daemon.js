@@ -91,28 +91,12 @@ function fg(cb) {
 // probe is ever unavailable. The ladder is CANCELLABLE: a new press (or a long-press firing) stops
 // it, so a stale ladder can never yank us back out of the stock Home after a later long-press.
 var bringBusy = false;
-var bringCount = 0;
-var bringIv = null;
-function stopBring() { if (bringIv) { clearInterval(bringIv); bringIv = null; } bringBusy = false; }
+function stopBring() { bringBusy = false; }
 function bringBack() {
-  stopBring();
+  if (bringBusy) return;
   bringBusy = true;
-  bringCount = 0;
-  luna(APP, 'bring-immediate');
-  bringIv = setInterval(function () {
-    if (!bringBusy) return;
-    if (bringCount >= 8) { log('bring cap reached'); stopBring(); return; }
-    fg(function (id) {
-      if (!bringBusy) return;
-      if (id === APP) {
-        log('bring done (fg=' + APP + ')');
-        stopBring();
-        return;
-      }
-      bringCount++;
-      luna(APP, 'bring#' + bringCount);
-    });
-  }, 500);
+  luna(APP, 'bring');
+  setTimeout(function () { bringBusy = false; }, 2000);
 }
 
 // Boot: keep (re)launching our app until it actually owns the foreground. At cold boot webOS
@@ -231,8 +215,7 @@ function watchPower() {
         var state = o.state || '';
         log('power state event -> ' + state);
         if (state === 'Active' || state === 'active') {
-          log('TV woke up (Active) -> bringing back ' + APP);
-          bringBack();
+          log('TV woke up (Active) - bootd manages foreground');
         }
       } catch (e) {}
     }
@@ -390,71 +373,29 @@ function sanitize(s) {
 function setArt(b64) {
   try {
     var b = new Buffer(b64, 'base64');
-    artBytes = b;
-    fs.writeFileSync(ART, b);
-    st.hasArt = true;
-    st.artSeq = st.artSeq + 1;
+    if (b && b.length > 0) {
+      artBytes = b;
+      fs.writeFileSync(ART, b);
+      st.hasArt = true;
+      st.artSeq = st.artSeq + 1;
+    }
   } catch (e) {
     st.hasArt = false;
   }
 }
 
-function curlJson(url, cb, attempt) {
-  attempt = attempt || 0;
-  var cmd = CURL + ' -s --max-time 8 -A "airplay-bridge/1.0" -H "Lrclib-Client: airplay-bridge/1.0" "' + url + '"';
-  cp.exec(cmd, function (err, stdout) {
-    var arr = null, valid = false;
-    if (!err && stdout) {
-      try { arr = JSON.parse(stdout); valid = true; } catch (e) { valid = false; }
-    }
-    // JSON hợp lệ (kể cả mảng rỗng `[]`) = câu trả lời cuối cùng, KHÔNG retry.
-    // Chỉ retry khi curl lỗi/không trả JSON (vd 503 ServerOverloaded).
-    if (valid) { cb(arr); return; }
-    if (attempt < 4) { setTimeout(function () { curlJson(url, cb, attempt + 1); }, 2000); }
-    else { cb(null); }
-  });
-}
-
-function pickLyrics(arr, key) {
-  if (lastLyricKey !== key) { return; }
-  var best = null, i;
-  for (i = 0; i < arr.length; i++) { if (arr[i].syncedLyrics) { best = arr[i]; break; } }
-  if (!best) { for (i = 0; i < arr.length; i++) { if (arr[i].plainLyrics) { best = arr[i]; break; } } }
-  if (!best) { best = arr[0]; }
-  st.lyrics = best.plainLyrics || null;
-  st.lyricsSynced = best.syncedLyrics || null;
-  persist();
-}
-
-function fetchLyrics(title, artist) {
-  title = sanitize(title);
-  artist = sanitize(artist);
-  if (!title) { return; }
-  var key = title + '\u0001' + artist;
-  if (key === lastLyricKey) { return; }
-  lastLyricKey = key;
-  st.lyrics = null;
-  st.lyricsSynced = null;
-  persist();
-  var url1 = 'https://lrclib.net/api/search?track_name=' + encodeURIComponent(title) + (artist ? '&artist_name=' + encodeURIComponent(artist) : '');
-  var url2 = 'https://lrclib.net/api/search?q=' + encodeURIComponent(title + ' ' + artist);
-  curlJson(url1, function (arr) {
-    if (arr && arr.length) { pickLyrics(arr, key); return; }
-    curlJson(url2, function (arr2) {
-      if (arr2 && arr2.length) { pickLyrics(arr2, key); }
-      else { if (lastLyricKey === key) { persist(); } }
-    }, 0);
-  }, 0);
-}
-
 function handleItem(typeHex, codeHex, dataB64) {
   var code = hexToAscii(codeHex);
   if (code === 'minm') {
-    st.title = decodeData(dataB64);
-    st.active = true;
-    st.hasArt = false;
-    st.artSeq = st.artSeq + 1;
-    persist();
+    var newTitle = decodeData(dataB64);
+    if (newTitle && newTitle !== st.title) {
+      st.title = newTitle;
+      st.active = true;
+      st.hasArt = false;
+      artBytes = null;
+      st.artSeq = st.artSeq + 1;
+      persist();
+    }
   } else if (code === 'asar') {
     st.artist = decodeData(dataB64);
     persist();
@@ -483,10 +424,13 @@ function handleItem(typeHex, codeHex, dataB64) {
     persist();
   } else if (code === 'pcst') {
     // 'pcst' = SẮP gửi ảnh bìa (PICT) — KHÔNG phải "bắt đầu bài hát".
-    // (Trước đây reset vị trí về 0 ở đây khiến lời nhảy về đầu mỗi khi ảnh bìa tới.)
     persist();
-  } else if (code === 'pcen' || code === 'pend' || code === 'pfls') {
-    if (code !== 'pcen') { st.active = false; }
+  } else if (code === 'pend') {
+    st.active = false;
+    persist();
+  } else if (code === 'pfls') {
+    // Audio flushed on seek/pause; tạm dừng nội suy mốc thời gian, không tắt session
+    prgrAt = 0;
     persist();
   } else if (code === 'PICT') {
     setArt(dataB64);
@@ -520,12 +464,30 @@ function parseBuf() {
   if (metaBuf.length > 4000000) { metaBuf = ''; }
 }
 
+var pipeStream = null;
+var reopenTimer = null;
+function scheduleReopen(delay) {
+  if (reopenTimer) return;
+  reopenTimer = setTimeout(function () {
+    reopenTimer = null;
+    openPipe();
+  }, delay || 500);
+}
+
 function openPipe() {
-  var s = fs.createReadStream(PIPE, { encoding: 'utf8' });
-  s.on('data', function (chunk) { metaBuf += chunk; parseBuf(); });
-  s.on('error', function () { setTimeout(openPipe, 1000); });
-  s.on('end', function () { setTimeout(openPipe, 300); });
-  s.on('close', function () { setTimeout(openPipe, 300); });
+  if (pipeStream) {
+    try { pipeStream.destroy(); } catch (e) {}
+    pipeStream = null;
+  }
+  try {
+    pipeStream = fs.createReadStream(PIPE, { encoding: 'utf8' });
+    pipeStream.on('data', function (chunk) { metaBuf += chunk; parseBuf(); });
+    pipeStream.on('error', function () { scheduleReopen(1000); });
+    pipeStream.on('end', function () { scheduleReopen(300); });
+    pipeStream.on('close', function () { scheduleReopen(300); });
+  } catch (e) {
+    scheduleReopen(1000);
+  }
 }
 
 function cors() {
@@ -533,8 +495,12 @@ function cors() {
 }
 
 var server = http.createServer(function (req, res) {
+  log('HTTP ' + req.method + ' ' + req.url);
   try { route(req, res); }
-  catch (e) { try { res.writeHead(500, cors()); res.end('err'); } catch (x) {} }
+  catch (e) {
+    log('HTTP error: ' + (e ? e.message : e));
+    try { res.writeHead(500, cors()); res.end('err'); } catch (x) {}
+  }
 });
 
 function route(req, res) {
@@ -571,5 +537,7 @@ process.on('uncaughtException', function (e) {
 restore();
 persist();
 openPipe();
-server.listen(PORT, '127.0.0.1');
+server.listen(PORT, '127.0.0.1', function () {
+  log('AirPlay bridge listening on 127.0.0.1:' + PORT);
+});
 try { fs.writeFileSync('/tmp/airplay-bridge.pid', String(process.pid)); } catch (e) {}
