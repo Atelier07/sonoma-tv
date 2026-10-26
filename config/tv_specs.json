@@ -1,0 +1,48 @@
+{
+  "device": {
+    "model": "LG 49SM8100PTA",
+    "screen": "NanoCell 4K HDR (49 inch)",
+    "resolution": "3840x2160 (Web UI viewport: 1920x1080 @ 60fps)",
+    "os": "webOS 4.10.0 (webOS 4.5)",
+    "kernel": "Linux LGwebOSTV 4.4.84-p.649.grampians.k5lp.1 armv7l",
+    "browser_engine": "Chromium 53 (Chrome 53.0.2785.34)"
+  },
+  "network": {
+    "ip": "192.168.1.6",
+    "ports": {
+      "ssh_root": 22,
+      "ssh_prisoner": 9922,
+      "telnet_root": 23,
+      "cdp_remote_debugging": 9998,
+      "ssap_websocket": 3000
+    }
+  },
+  "credentials": {
+    "ssh_user": "root",
+    "ssh_key_path": "~/.ssh/webos_rsa",
+    "ssh_passphrase_legacy": "878004",
+    "ssap_client_key": "c04dea9b049d0355d69d83478e8e7005"
+  },
+  "root_security": {
+    "rooted": true,
+    "exploit": "faultmanager-autoroot (throwaway96)",
+    "homebrew_channel_id": "org.webosbrew.hbchannel",
+    "startup_script": "/var/lib/webosbrew/startup.sh",
+    "devmode_app_removed": true,
+    "immutable_devmode_flag": "chattr +i /var/luna/preferences/devmode_enabled",
+    "blocked_update_domains": [
+      "snu.lge.com",
+      "su.lge.com",
+      "su-ssl.lge.com",
+      "su-dev.lge.com",
+      "lgtvonline.lge.com",
+      "lgsmartad.com",
+      "ibis.lgappstv.com"
+    ]
+  },
+  "app": {
+    "id": "com.apple.aerial.tvos",
+    "install_path": "/media/developer/apps/usr/palm/applications/com.apple.aerial.tvos",
+    "video_path": "/media/developer/apps/usr/palm/applications/com.apple.aerial.tvos/videos/Dubai_Skyline_Sonoma_4K_Compressed.mp4"
+  }
+}

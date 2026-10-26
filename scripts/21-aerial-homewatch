@@ -1,0 +1,16 @@
+#!/bin/sh
+# Start the Aerial launcher home-button watcher (webOS 4.5).
+# NOTE: must have NO dot in the filename — busybox run-parts skips dotted names.
+SCRIPT=/var/lib/webosbrew/homewatch.js
+PIDF=/tmp/aerial-homewatch.pid
+LOG=/tmp/aerial-homewatch.log
+NODE=/usr/bin/node
+
+[ -f "$SCRIPT" ] || exit 0
+
+# kill a previous instance if the pidfile is still valid
+[ -f "$PIDF" ] && kill "$(cat "$PIDF")" 2>/dev/null
+
+nohup "$NODE" "$SCRIPT" >>"$LOG" 2>&1 &
+echo $! > "$PIDF"
+exit 0

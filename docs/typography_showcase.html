@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bảo Tàng Typography Nghệ Thuật — The Art of Fluid & Curvaceous Fonts</title>
+  
+  <!-- Nạp các font nghệ thuật hàng đầu hỗ trợ tiếng Việt trọn vẹn từ Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel+Decorative:wght@700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600;1,700&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400;1,9..144,600&family=Lora:ital,wght@0,400;0,600;1,400;1,600&family=Playfair+Display:ital,wght@0,600;1,400;1,600;1,800&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0b0d13;
+      --card-bg: rgba(20, 24, 34, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(212, 175, 55, 0.4);
+      --gold: #dfba73;
+      --gold-glow: rgba(223, 186, 115, 0.25);
+      --text-main: #f0f2f7;
+      --text-dim: #8b92a4;
+      --system-font: "Plus Jakarta Sans", -apple-system, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg);
+      background-image: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(120, 90, 40, 0.22), transparent 70%),
+        radial-gradient(circle at 10% 30%, rgba(40, 60, 110, 0.15), transparent 50%),
+        radial-gradient(circle at 90% 80%, rgba(90, 40, 70, 0.15), transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      font-family: var(--system-font);
+      min-height: 100vh;
+      padding: 60px 5vw;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* HEADER */
+    .header {
+      text-align: center;
+      max-width: 860px;
+      margin: 0 auto 60px auto;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: rgba(223, 186, 115, 0.1);
+      border: 1px solid rgba(223, 186, 115, 0.25);
+      border-radius: 999px;
+      margin-bottom: 20px;
+      box-shadow: 0 0 20px var(--gold-glow);
+    }
+
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 600;
+      line-height: 1.15;
+      margin-bottom: 18px;
+      background: linear-gradient(135deg, #ffffff 40%, var(--gold) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header p {
+      font-size: 1.15rem;
+      color: var(--text-dim);
+      font-weight: 300;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* LIVE PLAYGROUND INPUT */
+    .interactive-bar {
+      max-width: 900px;
+      margin: 0 auto 60px auto;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      padding: 16px 24px;
+      border-radius: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .interactive-bar label {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--gold);
+      white-space: nowrap;
+    }
+
+    .interactive-bar input[type="text"] {
+      flex: 1;
+      min-width: 260px;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 12px 18px;
+      color: #fff;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .interactive-bar input[type="text"]:focus {
+      border-color: var(--gold);
+    }
+
+    .interactive-bar .range-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .interactive-bar input[type="range"] {
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+
+    /* GRID SHOWCASE */
+    .showcase-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 32px;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .font-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 26px;
+      padding: 36px 32px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.35s cubic-bezier(0.2, 1, 0.3, 1), border-color 0.35s ease, box-shadow 0.35s ease;
+      backdrop-filter: blur(20px);
+    }
+
+    .font-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--card-hover-border);
+      box-shadow: 0 24px 50px rgba(0, 0, 0, 0.6), 0 0 30px var(--gold-glow);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+
+    .font-name {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #ffffff;
+    }
+
+    .font-style-tag {
+      font-size: 12px;
+      font-family: monospace;
+      color: var(--gold);
+      background: rgba(223, 186, 115, 0.08);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    /* SPECIMEN DISPLAY */
+    .specimen-wrap {
+      margin: 20px 0 32px 0;
+      min-height: 140px;
+      display: flex;
+      align-items: center;
+    }
+
+    .specimen-text {
+      width: 100%;
+      line-height: 1.25;
+      color: #ffffff;
+      word-break: break-word;
+      transition: font-size 0.2s ease;
+    }
+
+    .font-desc {
+      font-size: 0.95rem;
+      color: var(--text-dim);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .font-desc strong {
+      color: #e2e6f0;
+      font-weight: 500;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 12px;
+      padding: 10px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .css-snippet {
+      font-family: monospace;
+      font-size: 12px;
+      color: #9ba3b8;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .copy-btn {
+      background: none;
+      border: none;
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--gold);
+      color: #000;
+    }
+
+    /* TỪNG PHONG CÁCH CHỮ NGHỆ THUẬT */
+
+    /* 1. Cormorant Garamond: Nữ hoàng thư pháp cổ điển */
+    .font-cormorant {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      text-shadow: 0 4px 20px rgba(255, 255, 255, 0.15);
+    }
+
+    /* 2. Playfair Display: Tạp chí thời trang kiêu kỳ */
+    .font-playfair {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 600;
+      letter-spacing: -0.015em;
+      background: linear-gradient(135deg, #ffffff 60%, #e2c082 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* 3. Fraunces: Đương đại, béo tròn, uốn lượn như điêu khắc */
+    .font-fraunces {
+      font-family: 'Fraunces', serif;
+      font-style: italic;
+      font-weight: 500;
+      font-variation-settings: "WONK" 1, "SOFT" 100;
+      letter-spacing: -0.02em;
+    }
+
+    /* 4. Alex Brush: Chữ ký quý tộc & Thư tay Paris */
+    .font-brush {
+      font-family: 'Alex Brush', cursive;
+      font-weight: 400;
+      letter-spacing: 0.02em;
+      color: #f7e6c4;
+      text-shadow: 0 0 24px rgba(247, 230, 196, 0.3);
+    }
+
+    /* 5. Cinzel Decorative: Hoàng gia La Mã uy nghi */
+    .font-cinzel {
+      font-family: 'Cinzel Decorative', serif;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: #ffd885;
+      text-shadow: 0 2px 14px rgba(255, 216, 133, 0.35);
+    }
+
+    /* 6. Lora Italic: Dịu dàng, xúc cảm văn chương */
+    .font-lora {
+      font-family: 'Lora', serif;
+      font-style: italic;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+
+    /* FOOTER TIPS */
+    .guide-box {
+      max-width: 900px;
+      margin: 80px auto 0 auto;
+      background: rgba(223, 186, 115, 0.04);
+      border: 1px solid rgba(223, 186, 115, 0.2);
+      border-radius: 22px;
+      padding: 32px 36px;
+    }
+
+    .guide-box h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem;
+      font-style: italic;
+      color: var(--gold);
+      margin-bottom: 12px;
+    }
+
+    .guide-box ul {
+      list-style-type: none;
+      padding: 0;
+    }
+
+    .guide-box li {
+      position: relative;
+      padding-left: 24px;
+      margin-bottom: 12px;
+      color: #cbd3e6;
+    }
+
+    .guide-box li::before {
+      content: "✦";
+      position: absolute;
+      left: 0;
+      color: var(--gold);
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="badge">Artistic & Fluid Typography</div>
+    <h1>Nghệ Thuật Của Những Đường Cong</h1>
+    <p>Tổng hợp những tuyệt tác phông chữ có độ uốn lượn (swash, italic, calligraphic) tinh tế, sang trọng và hỗ trợ dấu tiếng Việt đẹp như tranh vẽ.</p>
+  </header>
+
+  <!-- LIVE TESTING BAR -->
+  <div class="interactive-bar">
+    <label for="liveInput">Thử chữ riêng của bạn:</label>
+    <input type="text" id="liveInput" value="Khúc nhạc tình tựa sương khói ban chiều">
+    <div class="range-group">
+      <label for="sizeSlider">Cỡ:</label>
+      <input type="range" id="sizeSlider" min="28" max="72" value="44">
+      <span id="sizeVal" style="font-size: 12px; color: var(--gold); min-width: 32px;">44px</span>
+    </div>
+  </div>
+
+  <main class="showcase-grid">
+
+    <!-- FONT 1: CORMORANT GARAMOND -->
+    <article class="font-card">
+      <div class="card-top">
+        <h2 class="font-name">Cormorant Garamond</h2>
+        <span class="font-style-tag">Italic 600 • Thơ mộng</span>
+      </div>
+      <div class="specimen-wrap">
+        <p class="specimen-text font-cormorant" id="spec1">Khúc nhạc tình tựa sương khói ban chiều</p>
+      </div>
+      <p class="font-desc">
+        <strong>Vẻ đẹp:</strong> Nét thanh nét đậm tương phản cực gắt, đuôi chữ uốn mềm mại như giọt nước. Dấu hỏi ngã tiếng Việt vẽ thanh thoát tựa thư pháp thế kỷ 16.<br>
+        <strong>Ứng dụng:</strong> Hoàn hảo cho <em>lời bài hát (lyrics) lofi</em>, thơ ca, hoặc tựa đề bài hát trên TV.
+      </p>
+      <div class="card-footer">
+        <span class="css-snippet">font-family: 'Cormorant Garamond', serif; font-style: italic;</span>
+        <button class="copy-btn" onclick="copyCSS('spec1-css', this)">Copy CSS</button>
+      </div>
+    </article>
+
+    <!-- FONT 2: PLAYFAIR DISPLAY -->
+    <article class="font-card">
+      <div class="card-top">
+        <h2 class="font-name">Playfair Display</h2>
+        <span class="font-style-tag">Italic 600 • Haute Couture</span>
+      </div>
+      <div class="specimen-wrap">
+        <p class="specimen-text font-playfair" id="spec2">Khúc nhạc tình tựa sương khói ban chiều</p>
+      </div>
+      <p class="font-desc">
+        <strong>Vẻ đẹp:</strong> Thần thái tạp chí thời trang Vogue & Harper's Bazaar. Nét nghiêng kiêu sa, quý phái, các vòng cung chữ cái mở rộng đầy đặn và sang trọng.<br>
+        <strong>Ứng dụng:</strong> Tuyệt đỉnh cho <em>đồng hồ nghệ thuật</em>, tựa đề phim điện ảnh hoặc tên nghệ sĩ.
+      </p>
+      <div class="card-footer">
+        <span class="css-snippet">font-family: 'Playfair Display', serif; font-style: italic;</span>
+        <button class="copy-btn" onclick="copyCSS('spec2-css', this)">Copy CSS</button>
+      </div>
+    </article>
+
+    <!-- FONT 3: FRAUNCES -->
+    <article class="font-card">
+      <div class="card-top">
+        <h2 class="font-name">Fraunces</h2>
+        <span class="font-style-tag">Wonky Italic • Điêu khắc</span>
+      </div>
+      <div class="specimen-wrap">
+        <p class="specimen-text font-fraunces" id="spec3">Khúc nhạc tình tựa sương khói ban chiều</p>
+      </div>
+      <p class="font-desc">
+        <strong>Vẻ đẹp:</strong> Phong cách đương đại (Contemporary Retro). Các đường cong béo tròn mềm mại như được chạm khắc thủ công từ gỗ sơn mài, vừa ấm áp vừa cá tính dị biệt.<br>
+        <strong>Ứng dụng:</strong> Tạo điểm nhấn thương hiệu độc bản, không bao giờ đụng hàng với bất kỳ mẫu web đại trà nào.
+      </p>
+      <div class="card-footer">
+        <span class="css-snippet">font-family: 'Fraunces', serif; font-variation-settings: "WONK" 1;</span>
+        <button class="copy-btn" onclick="copyCSS('spec3-css', this)">Copy CSS</button>
+      </div>
+    </article>
+
+    <!-- FONT 4: ALEX BRUSH -->
+    <article class="font-card">
+      <div class="card-top">
+        <h2 class="font-name">Alex Brush</h2>
+        <span class="font-style-tag">Cursive • Thư tay Paris</span>
+      </div>
+      <div class="specimen-wrap">
+        <p class="specimen-text font-brush" id="spec4">Khúc nhạc tình tựa sương khói ban chiều</p>
+      </div>
+      <p class="font-desc">
+        <strong>Vẻ đẹp:</strong> Chuẩn mực của sự "uốn éo bay bổng". Nét bút lông mềm mại nối liền các con chữ, giống như lời đề tặng viết bằng bút chấm mực của giới quý tộc châu Âu.<br>
+        <strong>Ứng dụng:</strong> Dùng cho các câu highlight đắt giá, chữ ký, thiệp mời, hoặc tên bản phối acoustic.
+      </p>
+      <div class="card-footer">
+        <span class="css-snippet">font-family: 'Alex Brush', cursive;</span>
+        <button class="copy-btn" onclick="copyCSS('spec4-css', this)">Copy CSS</button>
+      </div>
+    </article>
+
+    <!-- FONT 5: CINZEL DECORATIVE -->
+    <article class="font-card">
+      <div class="card-top">
+        <h2 class="font-name">Cinzel Decorative</h2>
+        <span class="font-style-tag">Swash Serif • Hoàng gia</span>
+      </div>
+      <div class="specimen-wrap">
+        <p class="specimen-text font-cinzel" id="spec5">KHÚC NHẠC TÌNH</p>
+      </div>
+      <p class="font-desc">
+        <strong>Vẻ đẹp:</strong> Lấy cảm hứng từ chạm khắc bia đá La Mã thế kỷ thứ nhất, với các móc câu (swash) uốn lượn uy nghi, mang vẻ đẹp huyền bí, quyền lực của những bộ phim thần thoại.<br>
+        <strong>Ứng dụng:</strong> Đặt làm logo trang chủ, tên menu chính, hoặc biểu tượng trang trọng.
+      </p>
+      <div class="card-footer">
+        <span class="css-snippet">font-family: 'Cinzel Decorative', serif; font-weight: 700;</span>
+        <button class="copy-btn" onclick="copyCSS('spec5-css', this)">Copy CSS</button>
+      </div>
+    </article>
+
+    <!-- FONT 6: LORA -->
+    <article class="font-card">
+      <div class="card-top">
+        <h2 class="font-name">Lora</h2>
+        <span class="font-style-tag">Italic 500 • Văn chương</span>
+      </div>
+      <div class="specimen-wrap">
+        <p class="specimen-text font-lora" id="spec6">Khúc nhạc tình tựa sương khói ban chiều</p>
+      </div>
+      <p class="font-desc">
+        <strong>Vẻ đẹp:</strong> Dịu dàng, sâu lắng, đậm chất văn học. Độ cong của chân chữ vừa phải giúp đọc văn bản dài không bị mỏi mắt mà vẫn toát lên vẻ trí thức, tao nhã.<br>
+        <strong>Ứng dụng:</strong> Lý tưởng cho <em>đoạn mô tả bài hát</em>, lời tự sự, hoặc phụ đề phim điện ảnh.
+      </p>
+      <div class="card-footer">
+        <span class="css-snippet">font-family: 'Lora', serif; font-style: italic;</span>
+        <button class="copy-btn" onclick="copyCSS('spec6-css', this)">Copy CSS</button>
+      </div>
+    </article>
+
+  </main>
+
+  <aside class="guide-box">
+    <h3>Bí Quyết Phối Font Đỉnh Cao (Design Principles):</h3>
+    <ul>
+      <li><strong>Nguyên tắc tương phản (Contrast is King):</strong> Hãy dùng font uốn lượn nghệ thuật (như <em>Playfair</em> hoặc <em>Cormorant</em>) cho tiêu đề hoặc lời bài hát lớn, và đi kèm một font không chân sạch sẽ hiện đại (như <em>Plus Jakarta Sans</em> hoặc <em>Inter</em>) cho các nút bấm và số liệu.</li>
+      <li><strong>Đừng lạm dụng quá nhiều font cong:</strong> Trong một màn hình, chỉ nên cho DUY NHẤT một thành phần được "uốn éo" để làm ngôi sao tỏa sáng. Những thành phần khác nên khiêm nhường làm nền.</li>
+      <li><strong>Luôn dùng Italic khi cần chất thơ:</strong> Bản thân chữ đứng (Regular) nhìn trang trọng, nhưng chỉ cần chuyển sang <em>Italic (chữ nghiêng)</em> là lập tức toát lên vẻ lãng mạn và nghệ thuật!</li>
+    </ul>
+  </aside>
+
+  <script>
+    // Live update text
+    var liveInput = document.getElementById('liveInput');
+    var sizeSlider = document.getElementById('sizeSlider');
+    var sizeVal = document.getElementById('sizeVal');
+    var specimens = document.querySelectorAll('.specimen-text');
+
+    function updateSpecimens() {
+      var val = liveInput.value.trim() || 'Khúc nhạc tình';
+      specimens.forEach(function(el) {
+        if (el.id === 'spec5') {
+          // Cinzel Decorative đẹp nhất ở chữ in hoa
+          el.textContent = val.toUpperCase();
+        } else {
+          el.textContent = val;
+        }
+      });
+    }
+
+    function updateSize() {
+      var sz = sizeSlider.value + 'px';
+      sizeVal.textContent = sz;
+      specimens.forEach(function(el) {
+        el.style.fontSize = sz;
+      });
+    }
+
+    liveInput.addEventListener('input', updateSpecimens);
+    sizeSlider.addEventListener('input', updateSize);
+    updateSize();
+
+    // Quick copy helper
+    function copyCSS(id, btn) {
+      var card = btn.closest('.font-card');
+      var snippet = card.querySelector('.css-snippet').textContent;
+      navigator.clipboard.writeText(snippet).then(function() {
+        var old = btn.textContent;
+        btn.textContent = 'Đã chép!';
+        setTimeout(function() { btn.textContent = old; }, 1500);
+      });
+    }
+  </script>
+</body>
+</html>

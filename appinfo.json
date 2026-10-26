@@ -1,0 +1,25 @@
+{
+  "id": "com.apple.aerial.tvos",
+  "version": "1.0.2",
+  "vendor": "Apple Aerial",
+  "type": "web",
+  "main": "index.html",
+  "title": "Aerial Launcher",
+  "icon": "icon.png",
+  "largeIcon": "largeIcon.png",
+  "resolution": "1920x1080",
+  "transparent": true,
+  "disableBackHistoryAPI": true,
+  "hasPromotion": false,
+  "noSplashOnLaunch": true,
+  "spinnerOnLaunch": false,
+  "checkUpdateOnLaunch": false,
+  "supportQuickStart": true,
+  "handlesRelaunch": false,
+  "bootLaunchParams": {
+    "boot": true
+  },
+  "requiredPermissions": [
+    "application.operation"
+  ]
+}

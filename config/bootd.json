@@ -1,0 +1,101 @@
+{
+    "hwTimer": {
+        "enable": true, 
+        "supportedSoc": [
+            "m14tv", 
+            "goldfinger", 
+            "h13", 
+            "h15", 
+            "m16", 
+            "m16p"
+        ]
+    }, 
+    "standard": {
+        "description": "H/W specific configuration. See %WEBOS_TARGET_DISTRO_VARIANT% varialbe"
+    }, 
+    "m14": {
+        "description": "H/W specific configuration. See %WEBOS_TARGET_MACHINE% varialbe"
+    }, 
+    "inputApps": {
+        "RGB_1": "com.apple.aerial.tvos", 
+        "ATV": "com.apple.aerial.tvos", 
+        "AV_1": "com.apple.aerial.tvos", 
+        "AV_2": "com.apple.aerial.tvos", 
+        "SMHL_1": "com.apple.aerial.tvos", 
+        "HDMI_4": "com.apple.aerial.tvos", 
+        "SCART_1": "com.apple.aerial.tvos", 
+        "COMP_1": "com.apple.aerial.tvos", 
+        "HDMI_1": "com.apple.aerial.tvos", 
+        "DTV": "com.apple.aerial.tvos", 
+        "HDMI_3": "com.apple.aerial.tvos", 
+        "HDMI_2": "com.apple.aerial.tvos"
+    }, 
+    "common": {
+        "description": "default configuration values", 
+        "firstAppByPowerOnReason": {
+            "amazon": "amazon", 
+            "localKey": "{LAST_APP}", 
+            "ivi": "ivi", 
+            "remoteKey": "{LAST_APP}", 
+            "netflix": "netflix"
+        }, 
+        "firstApp": {
+            "firstAppInNormal": "com.apple.aerial.tvos", 
+            "firstAppInEmulator": "com.webos.app.emulwelcome", 
+            "firstAppInFirstUse": "com.palm.app.firstuse"
+        }, 
+        "priority": {
+            "boot-done": [
+                {
+                    "process": "sam", 
+                    "value": 0
+                }, 
+                {
+                    "process": "surface-manager", 
+                    "value": 0
+                }, 
+                {
+                    "process": "WebAppMgr", 
+                    "value": 0
+                }
+            ], 
+            "snapshot-resume-done": [
+                {
+                    "process": "sam", 
+                    "value": -19
+                }, 
+                {
+                    "process": "surface-manager", 
+                    "value": -19
+                }
+            ], 
+            "minimal-boot-done": [
+                {
+                    "process": "com.webos.app.i", 
+                    "value": -15
+                }
+            ]
+        }, 
+        "resourcemon": {
+            "startAfter": 2, 
+            "waitCpuUnder": 50
+        }, 
+        "logger": {
+            "logLevel": "debug", 
+            "logType": [
+                "file", 
+                "pmlog"
+            ]
+        }, 
+        "firstAppParams": [
+            {
+                "name": "locale", 
+                "file": "/var/luna/preferences/localeInfo"
+            }, 
+            {
+                "name": "hotelMode", 
+                "file": "/var/luna/preferences/hotelMode"
+            }
+        ]
+    }
+}

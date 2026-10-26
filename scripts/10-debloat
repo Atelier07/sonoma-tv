@@ -1,0 +1,36 @@
+#!/bin/sh
+# 10-debloat.sh - System Performance & Memory Optimizer for LG webOS 4.5
+mount --bind /var/lib/webosbrew/hosts /etc/hosts 2>/dev/null || true
+
+# 1. Network Buffer Tuning for 4K Video Streaming
+sysctl -w net.core.rmem_max=4194304 2>/dev/null || true
+sysctl -w net.core.wmem_max=4194304 2>/dev/null || true
+sysctl -w net.ipv4.tcp_rmem="4096 87380 4194304" 2>/dev/null || true
+sysctl -w net.ipv4.tcp_wmem="4096 65536 4194304" 2>/dev/null || true
+
+# 2. Virtual Memory & Swap Optimization (Reduces slow eMMC thrashing & lag)
+sysctl -w vm.swappiness=15 2>/dev/null || true
+sysctl -w vm.vfs_cache_pressure=50 2>/dev/null || true
+sysctl -w vm.dirty_ratio=10 2>/dev/null || true
+sysctl -w vm.dirty_background_ratio=5 2>/dev/null || true
+
+# 3. Stop Preloaded Browser (Recovers physical RAM)
+initctl stop webos-preload-manager 2>/dev/null || true
+
+# 4. Asynchronous delayed killer for late-starting telemetry, ads, and voice daemons
+(
+  for delay in 5 15 30 60; do
+    sleep "$delay"
+    for svc in uploadd rdxd remotelogger crashreportd contentminer nudge rec-info-adapter rec-listmgr admanager webos-preload-manager aiservice iepg; do
+      initctl stop "$svc" 2>/dev/null || true
+    done
+    luna-send -a webosbrew -n 1 luna://com.webos.applicationManager/closeByAppId '{"id":"com.webos.app.browser"}' 2>/dev/null || true
+    killall -9 chrome 2>/dev/null || true
+  done
+) </dev/null >/dev/null 2>&1 &
+
+# 5. Lock System Settings: Disable all Ads & Promotions, Keep Home Ribbon AutoLaunch Off
+luna-send -a webosbrew -n 1 luna://com.webos.settingsservice/setSystemSettings '{"category":"general","settings":{"homePromotion":"off","adCookie":"off","homeAutoLaunch":"off"}}' 2>/dev/null || true
+luna-send -a webosbrew -n 1 luna://com.webos.settingsservice/setSystemSettings '{"category":"option","settings":{"webOSPromotionVideo":"off","watchedListCollection":"off","livePlus":"off"}}' 2>/dev/null || true
+
+exit 0

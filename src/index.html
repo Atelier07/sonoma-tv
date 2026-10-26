@@ -1,0 +1,2320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>tvOS Minimal Launcher</title>
+  <style>
+    /* Inter (bundle local) — gần với SF Pro Display của Apple Music, có dấu
+       tiếng Việt. woff2 hỗ trợ từ Chrome 36 nên Chromium 53 OK. */
+    @font-face { font-family: "Inter"; font-style: normal; font-weight: 200; font-display: swap;
+      src: url("fonts/inter-latin-200.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    @font-face { font-family: "Inter"; font-style: normal; font-weight: 400; font-display: swap;
+      src: url("fonts/inter-latin-400.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    @font-face { font-family: "Inter"; font-style: normal; font-weight: 400; font-display: swap;
+      src: url("fonts/inter-vietnamese-400.woff2") format("woff2");
+      unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+    @font-face { font-family: "Inter"; font-style: normal; font-weight: 500; font-display: swap;
+      src: url("fonts/inter-latin-500.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    @font-face { font-family: "Inter"; font-style: normal; font-weight: 500; font-display: swap;
+      src: url("fonts/inter-vietnamese-500.woff2") format("woff2");
+      unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+    @font-face { font-family: "Inter"; font-style: normal; font-weight: 600; font-display: swap;
+      src: url("fonts/inter-latin-600.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    @font-face { font-family: "Inter"; font-style: normal; font-weight: 600; font-display: swap;
+      src: url("fonts/inter-vietnamese-600.woff2") format("woff2");
+      unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+    @font-face { font-family: "Inter"; font-style: normal; font-weight: 700; font-display: swap;
+      src: url("fonts/inter-latin-700.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    @font-face { font-family: "Inter"; font-style: normal; font-weight: 700; font-display: swap;
+      src: url("fonts/inter-vietnamese-700.woff2") format("woff2");
+      unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+    @font-face { font-family: "Inter"; font-style: normal; font-weight: 800; font-display: swap;
+      src: url("fonts/inter-latin-800.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    @font-face { font-family: "Inter"; font-style: normal; font-weight: 800; font-display: swap;
+      src: url("fonts/inter-vietnamese-800.woff2") format("woff2");
+      unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+
+    /* Cormorant Garamond (italic) — chỉ dùng cho LỜI BÀI HÁT. Serif mảnh, mềm,
+       mang chất "nghệ thuật". Kèm subset tiếng Việt để không mất dấu. */
+    @font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 400; font-display: swap;
+      src: url("fonts/cormorant-latin-400-italic.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    @font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 400; font-display: swap;
+      src: url("fonts/cormorant-vietnamese-400-italic.woff2") format("woff2");
+      unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+    @font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 600; font-display: swap;
+      src: url("fonts/cormorant-latin-600-italic.woff2") format("woff2");
+      unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+    @font-face { font-family: "Cormorant Garamond"; font-style: italic; font-weight: 600; font-display: swap;
+      src: url("fonts/cormorant-vietnamese-600-italic.woff2") format("woff2");
+      unicode-range: U+0102-0103, U+0110-0111, U+0128-0129, U+0168-0169, U+01A0-01A1, U+01AF-01B0, U+0300-0301, U+0303-0304, U+0308-0309, U+0323, U+0329, U+1EA0-1EF9, U+20AB; }
+
+    :root {
+      --font: "Inter", -apple-system, BlinkMacSystemFont, "LG Smart UI", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      --spring: cubic-bezier(0.22, 1.35, 0.36, 1);
+      --smooth: cubic-bezier(0.22, 1, 0.36, 1);
+
+      /* Chuẩn Landscape tvOS 3:2 bo góc tròn mềm mại */
+      --tv-card-w: 156px;
+      --tv-card-h: 104px;
+      --tv-card-radius: 26px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: transparent !important;
+      color: #ffffff;
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* =========================================================================
+       1. CÔ LẬP TẦNG PHẦN CỨNG: DEDICATED HARDWARE OVERLAY PLANE (VPU)
+       ========================================================================= */
+    .video-stage {
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 0;
+      background: transparent !important;
+      contain: strict;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
+      backface-visibility: hidden;
+    }
+
+    .aerial-video {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: 1 !important;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
+      backface-visibility: hidden;
+    }
+
+    /* Lớp che mối nối giữa hai clip (quick-dip ~0.22s/chiều).
+       Thay vì ĐEN trơn (gây "màn hình đen" lúc tải 4K), đây là nền
+       Aerial động vẽ bằng CSS thuần: gradient sâu + 2 vệt sáng trôi.
+       Không dùng decoder video nên hiện TỨC THÌ, che trọn thời gian buffer. */
+    .video-dip {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 50%, rgba(10, 20, 32, 0.65) 0%, rgba(5, 10, 16, 0.85) 100%);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      will-change: opacity;
+      z-index: 2;
+    }
+
+    .video-dip .glow {
+      position: absolute;
+      top: 50%; left: 50%;
+      width: 88vw; height: 88vw;
+      margin: -44vw 0 0 -44vw;
+      border-radius: 50%;
+      will-change: transform;
+      animation-play-state: paused;   /* chỉ chạy khi nền đang hiện */
+    }
+    .video-dip .glow-a {
+      background: radial-gradient(circle at 50% 50%, rgba(58,124,186,0.55) 0%, rgba(58,124,186,0) 62%);
+      animation: dipA 24s ease-in-out infinite alternate;
+    }
+    .video-dip .glow-b {
+      background: radial-gradient(circle at 50% 50%, rgba(28,138,148,0.45) 0%, rgba(28,138,148,0) 64%);
+      animation: dipB 31s ease-in-out infinite alternate;
+    }
+    /* Vệt sáng CHỈ trôi khi lớp nền đang hiển thị -> tiết kiệm GPU lúc phát video */
+    body.dip-on .video-dip .glow { animation-play-state: running; }
+
+    @keyframes dipA {
+      0%   { transform: translate3d(-20%, -12%, 0) scale(1); }
+      100% { transform: translate3d(12%, 10%, 0) scale(1.18); }
+    }
+    @keyframes dipB {
+      0%   { transform: translate3d(16%, 14%, 0) scale(1.12); }
+      100% { transform: translate3d(-14%, -8%, 0) scale(1); }
+    }
+
+    /* OSD Toast Notification */
+    .osd-toast {
+      position: fixed;
+      top: 40px;
+      left: 50%;
+      transform: translate3d(-50%, -70px, 0);
+      z-index: 100;
+      padding: 12px 28px;
+      border-radius: 999px;
+      background: rgba(18, 20, 28, 0.94);
+      border: 1.5px solid rgba(255, 255, 255, 0.22);
+      color: rgba(255, 255, 255, 0.95);
+      font-size: 1.25rem;
+      font-weight: 500;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.28s var(--spring), opacity 0.22s ease;
+      will-change: transform, opacity;
+    }
+
+    .osd-toast.show {
+      transform: translate3d(-50%, 0, 0);
+      opacity: 1;
+    }
+
+    /* Tab gợi ý "kéo lên": CHỈ hiện khi Dock đang ẩn, nằm giữa đáy màn hình */
+    .left-arrow-trigger {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      z-index: 40;
+      width: 84px;
+      height: 40px;
+      border-radius: 999px;
+      border: 1.5px solid rgba(255, 255, 255, 0.16);
+      background: rgba(18, 20, 28, 0.82);
+      color: rgba(255, 255, 255, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      outline: none;
+      pointer-events: auto;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      transform: translate3d(-50%, 0, 0);
+      transition: transform 0.28s var(--spring), opacity 0.22s ease, background 0.2s ease, color 0.2s ease;
+      will-change: transform, opacity;
+    }
+
+    .left-arrow-trigger:hover,
+    .left-arrow-trigger.focused {
+      background: rgba(38, 44, 60, 0.95);
+      border-color: rgba(255, 255, 255, 0.4);
+      color: #ffffff;
+      transform: translate3d(-50%, 0, 0) scale3d(1.08, 1.08, 1);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Khi Dock MỞ: tab gợi ý trượt hẳn xuống và biến mất */
+    body.dock-open .left-arrow-trigger {
+      opacity: 0;
+      transform: translate3d(-50%, 26px, 0) scale3d(0.85, 0.85, 1);
+      pointer-events: none;
+    }
+
+    /* =========================================================================
+       2. TẦNG GIAO DIỆN UI LAYER (ĐƯỢC CÔ LẬP RIÊNG TRÊN GPU)
+       ========================================================================= */
+    .ui-layer {
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 10;
+      pointer-events: none;
+      transform: translate3d(0, 0, 0);
+      will-change: transform;
+      contain: layout style;
+    }
+
+    /* TOP BAR: ĐỒNG HỒ & THỜI TIẾT — thả chữ trần, tối giản kiểu Apple TV.
+       Không khung/nền; chỉ phân cấp bằng cỡ + độ đậm, canh phải. */
+    .top-bar {
+      position: absolute;
+      top: 46px;
+      right: 66px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+      pointer-events: auto;
+      contain: layout style;
+    }
+
+    .clock-meta {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(255, 255, 255, 0.72);
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+      white-space: nowrap;
+    }
+
+    .weather-pill {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 16px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .weather-icon {
+      width: 15px;
+      height: 15px;
+      margin-right: 7px;
+      fill: currentColor;
+    }
+
+    .clock-display {
+      font-size: 104px;
+      font-weight: 200;
+      letter-spacing: -0.035em;
+      line-height: 0.95;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 6px 30px rgba(0, 0, 0, 0.5), 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+
+    .clock-display .colon {
+      opacity: 0.38;
+    }
+
+    /* =========================================================================
+       3. DOCK LAUNCHER TVOS — Ô KÍNH TỐI + ICON ỨNG DỤNG MÀU (Kiểu Apple TV)
+          Tối ưu GPU: cuộn bằng transform, focus chỉ animate transform/opacity
+       ========================================================================= */
+    .dock-container {
+      position: absolute;
+      bottom: 40px;
+      left: 50%;
+      transform: translate3d(-50%, 150px, 0);
+      opacity: 0;
+      pointer-events: none;
+      transition: transform 0.38s var(--smooth), opacity 0.28s ease;
+      will-change: transform, opacity;
+      contain: layout style;
+      z-index: 20;
+    }
+
+    body.dock-open .dock-container {
+      transform: translate3d(-50%, 0, 0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Khung Dock dạng kính tối Apple TV (không dùng backdrop-filter để giữ 60fps) */
+    .dock-bar {
+      display: flex;
+      align-items: center;
+      padding: 10px 20px;
+      border-radius: 44px;
+      background: rgba(16, 18, 26, 0.92);
+      border: 1.5px solid rgba(255, 255, 255, 0.14);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      position: relative;
+    }
+
+    /* Tiêu đề app nổi bên trên card đang focus */
+    .app-label-display {
+      position: absolute;
+      top: -50px;
+      left: 0;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+      color: #ffffff;
+      pointer-events: none;
+      white-space: nowrap;
+      transform: translate3d(172px, 0, 0);
+      transition: transform 0.34s var(--smooth), opacity 0.2s ease;
+      will-change: transform;
+      z-index: 30;
+    }
+
+    .label-inner {
+      display: inline-block;
+      transform: translateX(-50%);
+      background: rgba(16, 18, 26, 0.92);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 7px 20px;
+      border-radius: 999px;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.55);
+    }
+
+    /* Nút Collapse đóng Dock */
+    .collapse-btn {
+      width: 48px;
+      height: 104px;
+      border-radius: 26px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: rgba(255, 255, 255, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      outline: none;
+      margin-right: 14px;
+      flex-shrink: 0;
+      transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+      will-change: transform;
+    }
+
+    .collapse-btn:hover,
+    .collapse-btn.focused {
+      background: rgba(255, 255, 255, 0.22);
+      border-color: rgba(255, 255, 255, 0.4);
+      color: #ffffff;
+      transform: scale3d(1.06, 1.06, 1);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Viewport cuộn ngang — cuộn bằng transform (GPU), không dùng scrollLeft */
+    .apps-scroll-viewport {
+      position: relative;
+      max-width: 1460px;
+      overflow: hidden;
+      padding: 18px 20px;
+      contain: layout style;
+    }
+
+    .apps-wrapper {
+      display: flex;
+      align-items: center;
+      transform: translate3d(0, 0, 0);
+      transition: transform 0.34s var(--smooth);
+      will-change: transform;
+    }
+
+    /* Khoảng cách giữa các App Card (margin liền kề, không dùng flex gap) */
+    .apps-wrapper .app-card + .app-card {
+      margin-left: 26px;
+    }
+
+    /* ===== CARD = Ô KÍNH TỐI + ICON ỨNG DỤNG MÀU Ở GIỮA ===== */
+    .app-card {
+      width: var(--tv-card-w);
+      height: var(--tv-card-h);
+      border-radius: var(--tv-card-radius);
+      border: none;
+      background: transparent;
+      padding: 0;
+      margin: 0;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+      transition: transform 0.24s var(--spring);
+      will-change: transform;
+      contain: layout style;
+    }
+
+    /* Ô kính tối (kiểu Apple TV): nền kính xám đậm, icon app màu bo vuông ở giữa */
+    .card-surface {
+      width: 100%;
+      height: 100%;
+      border-radius: var(--tv-card-radius);
+      background: linear-gradient(158deg, rgba(50, 54, 66, 0.96) 0%, rgba(25, 27, 36, 0.97) 100%);
+      border: 1.5px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+    }
+
+    /* Ánh sáng bóng loáng phía trên ô kính (sheen) — tĩnh, không animate */
+    .card-surface::before {
+      content: "";
+      position: absolute;
+      top: 0; right: 0; left: 0;
+      height: 55%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0));
+      pointer-events: none;
+    }
+
+    /* Viền focus + quầng sáng: chỉ animate opacity/transform (GPU composited) */
+    .card-surface::after {
+      content: "";
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+      border-radius: inherit;
+      border: 3px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 0 0 5px rgba(255, 255, 255, 0.16), 0 0 32px rgba(255, 255, 255, 0.4);
+      opacity: 0;
+      transform: scale3d(0.94, 0.94, 1);
+      transition: opacity 0.18s ease, transform 0.24s var(--spring);
+      pointer-events: none;
+    }
+
+    /* Khối icon ứng dụng màu (bo vuông) đặt giữa ô kính */
+    .card-icon {
+      position: relative;
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background-image: var(--icon-bg, linear-gradient(140deg, #3a3a3a, #222222));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+      transition: transform 0.24s var(--spring);
+      will-change: transform;
+      box-shadow: 0 7px 16px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.38), inset 0 -3px 8px rgba(0, 0, 0, 0.22);
+    }
+
+    /* Ánh sáng chéo trên mặt icon (giữ cảm giác "nổi") */
+    .card-icon::before {
+      content: "";
+      position: absolute;
+      top: 0; right: 0; left: 0;
+      height: 52%;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0));
+      pointer-events: none;
+    }
+
+    .card-icon svg {
+      position: relative;
+      width: 42px;
+      height: 42px;
+      display: block;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.28));
+    }
+
+    /* Hiệu ứng focus tvOS — chỉ biến đổi transform (GPU 60fps) */
+    .app-card:hover,
+    .app-card.focused {
+      transform: translate3d(0, -6px, 0) scale3d(1.1, 1.1, 1);
+      z-index: 10;
+    }
+
+    .app-card.focused .card-surface::after {
+      opacity: 1;
+      transform: scale3d(1, 1, 1);
+    }
+
+    .app-card.focused .card-icon {
+      transform: scale3d(1.08, 1.08, 1);
+    }
+
+    .app-card:active {
+      transform: translate3d(0, -3px, 0) scale3d(1.05, 1.05, 1);
+    }
+
+    /* =========================================================================
+       4. NOW-PLAYING OVERLAY (AirPlay) — bìa + lời đồng bộ, trong suốt kiểu
+          Apple Music. Nằm GIỮA tầng video (z=0) và tầng UI (z=10).
+          Chỉ animate transform/opacity (GPU). Không dùng backdrop-filter.
+       ========================================================================= */
+    .now-playing {
+      position: fixed;
+      top: 0; right: 0; bottom: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 5;
+      font-family: var(--font);
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transform: translate3d(0, 0, 0);
+      transition: opacity 1s var(--smooth), visibility 0s linear 1s;
+      contain: layout style;
+      overflow: hidden;
+    }
+
+    .now-playing.visible {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 1s var(--smooth), visibility 0s linear 0s;
+    }
+
+    /* Dock mở -> tạm ẩn overlay cho gọn */
+    body.dock-open .now-playing { opacity: 0; }
+
+    /* Nền ambient: TRONG SUỐT HOÀN TOÀN (theo yêu cầu) — không gradient, chỉ
+       thấy tầng video 4K phía sau. .np-bg giữ làm chỗ neo nhưng không vẽ gì. */
+    .np-bg {
+      position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+      z-index: 0;
+      background: none;
+    }
+
+    /* Scrim: gradient RẤT NHẸ từ đáy lên (giúp chữ dễ đọc, gần như không thấy).
+       Gradient tĩnh, không animate -> không tốn CPU mỗi frame. */
+    .np-scrim {
+      position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+      z-index: 1;
+      background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.34) 0%,
+        rgba(0, 0, 0, 0.12) 22%,
+        rgba(0, 0, 0, 0) 48%
+      );
+    }
+
+    .np-inner {
+      position: absolute; top: 0; right: 0; bottom: 0; left: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      padding: 0 7vw;
+      opacity: 0;
+      transform: translate3d(0, 26px, 0) scale3d(0.985, 0.985, 1);
+      transition: opacity 1.05s var(--smooth) 0.15s, transform 1.25s var(--smooth) 0.1s;
+    }
+
+    .now-playing.visible .np-inner {
+      opacity: 1;
+      transform: translate3d(0, 0, 0) scale3d(1, 1, 1);
+    }
+
+    /* --- Cột trái: bìa + thông tin bài hát --- */
+    .np-left {
+      flex: 0 0 44%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    .np-art-wrap {
+      position: relative;
+      width: 44vh; height: 44vh;
+      max-width: 42vw; max-height: 42vw;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), 0 6px 18px rgba(0, 0, 0, 0.46), inset 0 0 0 1px rgba(255, 255, 255, 0.07);
+      transform: translate3d(0, 0, 0);
+    }
+
+    .np-art {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0;
+      transform: scale3d(1.05, 1.05, 1);
+      transition: opacity 0.85s var(--smooth), transform 1.3s var(--smooth);
+    }
+
+    .np-art.loaded { opacity: 1; transform: scale3d(1, 1, 1); }
+
+    /* Tiêu đề: chỉ hiện một nhịp khi đổi bài rồi tan dần (tránh rối khi chuyển bài) */
+    .np-meta {
+      margin-top: 32px;
+      max-width: 44vh;
+      opacity: 0;
+      transform: translate3d(0, 12px, 0);
+      transition: opacity 0.6s var(--smooth), transform 0.6s var(--smooth);
+    }
+
+    .np-meta.show { opacity: 1; transform: translate3d(0, 0, 0); }
+
+    .np-title {
+      font-size: 2.5rem;
+      font-weight: 600;
+      letter-spacing: -0.6px;
+      line-height: 1.15;
+      color: #ffffff;
+      text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* --- Cột phải: lời đồng bộ (tự cuộn, dòng đang hát nổi bật) --- */
+    .np-right {
+      flex: 1 1 56%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      padding-left: 4vw;
+      overflow: hidden;
+    }
+
+    /* Khung nhìn ~4 dòng; dòng đang hát nằm giữa, các dòng khác trôi qua. */
+    .np-lyrics {
+      position: relative;
+      width: 100%;
+      height: 46vh;
+      padding-right: 2.5vw;
+      overflow: hidden;
+    }
+
+    /* Track neo tuyệt đối các dòng; KHÔNG dùng perspective (3D tốn GPU Mali-G31). */
+    .np-lyrics-track {
+      position: absolute;
+      top: 0; right: 0; bottom: 0; left: 0;
+    }
+
+    /* Lời plain (không mốc thời gian): xếp dòng thường, hơi hạ xuống cho cân. */
+    .np-lyrics-track.flow { transform: translate3d(0, 16%, 0); }
+
+    /* Dòng lời: tuyệt đối, JS đặt vị trí dọc bằng translate3d; nghiêng 3D nhẹ
+       để tạo chiều sâu. Chỉ animate transform/opacity/color (nhẹ cho Mali-G31). */
+    .np-line {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      padding: 13px 0;
+      font-size: 3.3rem;
+      font-weight: 600;
+      line-height: 1.18;
+      letter-spacing: -0.022em;
+      color: rgba(255, 255, 255, 0.42);
+      transform-origin: left center;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.38s var(--smooth);
+    }
+
+    .np-lyrics-track.flow .np-line {
+      position: static;
+      transform: none;
+      opacity: 1;
+      will-change: auto;
+    }
+
+    .np-line.active { color: #ffffff; font-weight: 700; }
+    .np-line.past { color: rgba(255, 255, 255, 0.34); }
+
+    /* Bỏ specular (background-clip:text) — trước đây raster lại mỗi khung hình
+       trên dòng đang hát, tốn GPU. Độ nổi khối đã do cỡ chữ + màu đảm nhiệm. */
+
+    /* --- Highlight tiến dần theo TỪNG TỪ (chữ đã hát sáng dần) --- */
+    .np-w { color: rgba(255, 255, 255, 0.32); }
+    .np-line.past .np-w { color: rgba(255, 255, 255, 0.22); }
+    .np-line.active .np-w { color: rgba(255, 255, 255, 0.55); }
+    .np-line.active .np-w.full,
+    .np-line.active .np-w.cur { color: #ffffff; }
+
+    .np-empty {
+      color: rgba(255, 255, 255, 0.55);
+      font-weight: 500;
+      font-size: 1.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 1. CÔ LẬP TẦNG HARDWARE VIDEO PLANE (VPU) -->
+  <div class="video-stage">
+    <video id="aerialVideo" class="aerial-video" muted playsinline></video>
+    <!-- Tầng hút trước clip kế: chỉ đọc metadata (không cướp decoder của tầng đang chiếu) -->
+    <video id="aerialVideoNext" class="aerial-video" muted playsinline preload="metadata"></video>
+    <div id="videoDip" class="video-dip">
+      <div class="glow glow-a"></div>
+      <div class="glow glow-b"></div>
+    </div>
+  </div>
+
+  <!-- Now-Playing (AirPlay): bìa + lời đồng bộ, phủ trên video, dưới UI -->
+  <div id="nowPlaying" class="now-playing">
+    <div class="np-bg" id="npBg"></div>
+    <div class="np-scrim"></div>
+    <div class="np-inner">
+      <div class="np-left">
+        <div class="np-art-wrap">
+          <img id="npArt" class="np-art" alt="">
+        </div>
+        <div class="np-meta" id="npMeta">
+          <div id="npTitle" class="np-title"></div>
+        </div>
+      </div>
+      <div class="np-right">
+        <div id="npLyrics" class="np-lyrics">
+          <div id="npLyricsTrack" class="np-lyrics-track"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast thông báo trạng thái -->
+  <div id="osdToast" class="osd-toast">Đang mở ứng dụng...</div>
+
+  <!-- Tab gợi ý kéo lên để mở menu (chỉ hiện khi Dock ẩn) -->
+  <button id="leftArrow" class="left-arrow-trigger" aria-label="Mở menu ứng dụng">
+    <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 15 12 9 18 15"></polyline>
+    </svg>
+  </button>
+
+  <!-- 2. TẦNG GIAO DIỆN UI (ĐỒ HỌA RIÊNG, KHÔNG ẢNH HƯỞNG VIDEO) -->
+  <div class="ui-layer">
+    <!-- Đồng hồ & Thời tiết cho TV — thả chữ trần, tối giản -->
+    <div class="top-bar">
+      <div class="clock-meta">
+        <span id="clockDate">Thứ Sáu · 16/10</span>
+        <span class="weather-pill">
+          <svg class="weather-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5"></circle>
+            <line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+            <line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+            <line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+            <line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"></line>
+          </svg>
+          <span id="weatherTemp">32°</span>
+        </span>
+      </div>
+      <div id="clockText" class="clock-display">12:00</div>
+    </div>
+
+    <!-- 3. DOCK LAUNCHER CHỨA 10 ỨNG DỤNG THẬT CỦA TIVI (GỒM HOMEBREW CHANNEL) -->
+    <div class="dock-container" id="dockContainer">
+      <div class="dock-bar">
+        <!-- Tiêu đề app nổi bên trên card đang focus -->
+        <div class="app-label-display" id="appLabelDisplay">
+          <div class="label-inner" id="labelInnerText">YouTube</div>
+        </div>
+
+        <!-- Nút ẩn Dock (mũi tên xuống) -->
+        <button class="collapse-btn" id="collapseBtn" aria-label="Ẩn thanh ứng dụng">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </button>
+
+        <!-- Danh sách 10 App thật dạng Landscape Squircle -->
+        <div class="apps-scroll-viewport" id="scrollViewport">
+          <div class="apps-wrapper" id="appsWrapper">
+            <button class="app-card focused"
+              data-index="0"
+              data-appid="youtube.leanback.v4"
+              data-title="YouTube">
+              <div class="card-surface">
+                <div class="card-icon" style="--icon-bg: linear-gradient(140deg, #FF5252 0%, #E60000 58%, #B00000 100%);">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <rect x="2.6" y="5.4" width="18.8" height="13.2" rx="4.4" stroke="#fff" stroke-width="1.7"/>
+                    <path d="M10.1 9.3l5.3 2.7-5.3 2.7z" fill="#fff"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
+            <button class="app-card"
+              data-index="1"
+              data-appid="spotify-beehive"
+              data-title="Spotify">
+              <div class="card-surface">
+                <div class="card-icon" style="--icon-bg: linear-gradient(140deg, #1ED760 0%, #1DB954 58%, #0F8A3D 100%);">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M4.4 8.6C9 6.6 15.4 7 19.6 9.5" stroke="#fff" stroke-width="1.7"/>
+                    <path d="M5.4 12.2C9.4 10.8 14.8 11.2 18.5 13.3" stroke="#fff" stroke-width="1.7"/>
+                    <path d="M6.4 15.6C9.9 14.6 14.2 15 17.4 16.6" stroke="#fff" stroke-width="1.7"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
+            <button class="app-card"
+              data-index="2"
+              data-appid="com.apple.applemusic"
+              data-title="Apple Music">
+              <div class="card-surface">
+                <div class="card-icon" style="--icon-bg: linear-gradient(140deg, #FB5C74 0%, #FA233B 58%, #C2152A 100%);">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M9 17.5V6.2l9-2v11.1" stroke="#fff" stroke-width="1.7"/>
+                    <circle cx="7" cy="17.6" r="2.1" fill="#fff"/>
+                    <circle cx="16" cy="15.6" r="2.1" fill="#fff"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
+            <button class="app-card"
+              data-index="3"
+              data-appid="com.webos.app.browser"
+              data-title="Trình duyệt web">
+              <div class="card-surface">
+                <div class="card-icon" style="--icon-bg: linear-gradient(140deg, #60A5FA 0%, #2563EB 58%, #1D4ED8 100%);">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="8.6" stroke="#fff" stroke-width="1.7"/>
+                    <ellipse cx="12" cy="12" rx="3.9" ry="8.6" stroke="#fff" stroke-width="1.5"/>
+                    <path d="M3.6 9.4h16.8M3.6 14.6h16.8" stroke="#fff" stroke-width="1.5"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
+            <button class="app-card"
+              data-index="4"
+              data-appid="com.instantbits.cast.webvideo"
+              data-title="Web Video Caster">
+              <div class="card-surface">
+                <div class="card-icon" style="--icon-bg: linear-gradient(140deg, #FDBA4D 0%, #F97316 58%, #C2410C 100%);">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <rect x="3.6" y="4.4" width="16.8" height="11.4" rx="2.4" stroke="#fff" stroke-width="1.7"/>
+                    <path d="M11.1 8.5l4 2.6-4 2.6z" fill="#fff"/>
+                    <path d="M3.8 15.4a5.2 5.2 0 0 1 5.2 5.2" stroke="#fff" stroke-width="1.7"/>
+                    <circle cx="4" cy="20.5" r="1.1" fill="#fff"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
+            <button class="app-card"
+              data-index="5"
+              data-appid="com.webos.app.homeconnect"
+              data-title="Bảng điều khiển nhà">
+              <div class="card-surface">
+                <div class="card-icon" style="--icon-bg: linear-gradient(140deg, #38BDF8 0%, #0EA5E9 58%, #0369A1 100%);">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M3.6 11.2L12 4l8.4 7.2" stroke="#fff" stroke-width="1.7"/>
+                    <path d="M5.8 10.1V19.6h12.4V10.1" stroke="#fff" stroke-width="1.7"/>
+                    <path d="M10.2 19.6v-4.2h3.6v4.2" stroke="#fff" stroke-width="1.7"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
+            <button class="app-card"
+              data-index="6"
+              data-appid="com.webos.app.photovideo"
+              data-title="Ảnh & Video">
+              <div class="card-surface">
+                <div class="card-icon" style="--icon-bg: linear-gradient(140deg, #A78BFA 0%, #7C3AED 58%, #5B21B6 100%);">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <rect x="3.4" y="5.4" width="17.2" height="13.2" rx="2.6" stroke="#fff" stroke-width="1.7"/>
+                    <circle cx="8" cy="10" r="1.7" fill="#fff"/>
+                    <path d="M4.6 16.6l4-4 2.7 2.7 3.6-4.4 4 5.1" stroke="#fff" stroke-width="1.7"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
+            <button class="app-card"
+              data-index="7"
+              data-appid="com.webos.app.music"
+              data-title="Âm nhạc">
+              <div class="card-surface">
+                <div class="card-icon" style="--icon-bg: linear-gradient(140deg, #F472B6 0%, #DB2777 58%, #9D174D 100%);">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="8.6" stroke="#fff" stroke-width="1.7"/>
+                    <circle cx="12" cy="12" r="5.6" stroke="#fff" stroke-width="1.1" opacity="0.6"/>
+                    <circle cx="12" cy="12" r="2.2" fill="#fff"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
+            <button class="app-card"
+              data-index="8"
+              data-appid="com.webos.app.discovery"
+              data-title="LG Content Store">
+              <div class="card-surface">
+                <div class="card-icon" style="--icon-bg: linear-gradient(140deg, #F43F8E 0%, #D7156D 58%, #9D0F4F 100%);">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M5.4 8.2h13.2l1 11.2H4.4z" stroke="#fff" stroke-width="1.7"/>
+                    <path d="M8.8 8.2a3.2 3.2 0 0 1 6.4 0" stroke="#fff" stroke-width="1.7"/>
+                    <circle cx="12" cy="13.6" r="1.4" fill="#fff"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
+            <button class="app-card"
+              data-index="9"
+              data-appid="org.webosbrew.hbchannel"
+              data-title="Homebrew Channel">
+              <div class="card-surface">
+                <div class="card-icon" style="--icon-bg: linear-gradient(140deg, #FB7185 0%, #E11D48 58%, #9F1239 100%);">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M5 8h11v9.5a1.5 1.5 0 0 1-1.5 1.5h-8A1.5 1.5 0 0 1 5 17.5z" stroke="#fff" stroke-width="1.7"/>
+                    <path d="M16 10h1.8a2.2 2.2 0 0 1 0 4.4H16" stroke="#fff" stroke-width="1.7"/>
+                    <path d="M7.6 5.4c0-.9.9-1.3.9-1.3s.9.4.9 1.3M11 5.4c0-.9.9-1.3.9-1.3s.9.4.9 1.3M14.4 5.4c0-.9.9-1.3.9-1.3s.9.4.9 1.3" stroke="#fff" stroke-width="1.5"/>
+                  </svg>
+                </div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PalmServiceBridge Polyfill chuẩn webOS -->
+  <script>
+    if (!window.PalmServiceBridge && window.parent && window.parent.PalmServiceBridge) {
+      window.PalmServiceBridge = window.parent.PalmServiceBridge;
+    }
+    if (!window.webOS) {
+      window.webOS = {
+        service: {
+          request: function (uri, params) {
+            try {
+              var bridge = new PalmServiceBridge();
+              var fullUri = uri.endsWith('/') ? uri : uri + '/';
+              if (params.method) {
+                fullUri += params.method;
+              }
+              bridge.onservicecallback = function (msg) {
+                if (params.onSuccess) {
+                  try { params.onSuccess(JSON.parse(msg)); } catch (e) {}
+                }
+              };
+              bridge.call(fullUri, JSON.stringify(params.parameters || {}));
+              return bridge;
+            } catch (err) {
+              console.error("PalmServiceBridge call failed:", err);
+            }
+          }
+        }
+      };
+    }
+  </script>
+
+  <script>
+    // <<AERIALS>>
+    // Danh sách clip 4K HEVC chính chủ Apple (sinh bởi scripts/fetch_aerials.py).
+    // Stream trực tiếp qua mạng LAN, KHÔNG ghi vào ROM. Nguồn: src/aerials.json.
+    var AERIALS = [
+      { label: "Africa and the Middle East", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A103_C002_0205DG_v12_SDR_FINAL_20180706_SDR_2K_HEVC.mov" },
+      { label: "Africa Night", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GMT312_162NC_139M_1041_AFRICA_NIGHT_v14_SDR_FINAL_20180706_SDR_2K_HEVC.mov" },
+      { label: "Alaskan Jellies", url: "https://sylvan.apple.com/Aerials/2x/Videos/g201_AK_A003_C014_SDR_20191113_SDR_2K_HEVC.mov" },
+      { label: "Alaskan Jellies", url: "https://sylvan.apple.com/Aerials/2x/Videos/AK_A004_C012_SDR_20191217_SDR_2K_HEVC.mov" },
+      { label: "Antarctica", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GMT110_112NC_364D_1054_AURORA_ANTARTICA__COMP_FINAL_v34_PS_SDR_20181107_SDR_2K_HEVC.mov" },
+      { label: "Atlantic Ocean to Spain and France", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A001_C001_120530_v04_SDR_FINAL_20180706_SDR_2K_HEVC.mov" },
+      { label: "Australia", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GMT060_117NC_363D_1034_AUSTRALIA_v35_SDR_PS_FINAL_20180731_SDR_2K_HEVC.mov" },
+      { label: "Barracuda", url: "https://sylvan.apple.com/Aerials/2x/Videos/BO_A018_C029_SDR_20190812_SDR_2K_HEVC.mov" },
+      { label: "Bumpheads", url: "https://sylvan.apple.com/Aerials/2x/Videos/BO_A014_C008_SDR_20190719_SDR_2K_HEVC.mov" },
+      { label: "California Dolphins", url: "https://sylvan.apple.com/Aerials/2x/Videos/DL_B002_C011_SDR_20191122_SDR_2K_HEVC.mov" },
+      { label: "California Kelp Forest", url: "https://sylvan.apple.com/Aerials/2x/Videos/g201_CA_A016_C002_SDR_20191114_SDR_2K_HEVC.mov" },
+      { label: "California to Vegas", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GMT306_139NC_139J_3066_CALI_TO_VEGAS_v08_SDR_PS_20180824_SDR_2K_HEVC.mov" },
+      { label: "Caribbean", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A105_C002_v06_SDR_FINAL_25062018_SDR_2K_HEVC.mov" },
+      { label: "Caribbean", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A108_C001_v09_SDR_FINAL_22062018_SDR_2K_HEVC.mov" },
+      { label: "Caribbean Day", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GMT308_139K_142NC_CARIBBEAN_DAY_v09_SDR_FINAL_22062018_SDR_2K_HEVC.mov" },
+      { label: "China", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_CH_C002_C005_PSNK_v05_SDR_PS_FINAL_20180709_SDR_2K_HEVC.mov" },
+      { label: "China", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_CH_C007_C004_PSNK_v02_SDR_PS_FINAL_20180709_SDR_2K_HEVC.mov" },
+      { label: "China", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_C003_C003_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "China", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GMT329_113NC_396B_1105_CHINA_v04_SDR_FINAL_20180706_F900F2700_SDR_2K_HEVC.mov" },
+      { label: "China", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_CH_C007_C011_PSNK_v02_SDR_PS_FINAL_20180709_SDR_2K_HEVC.mov" },
+      { label: "China", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_C001_C005_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "China", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_C004_C003_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "Costa Rica Dolphins", url: "https://sylvan.apple.com/Aerials/2x/Videos/CR_A009_C007_SDR_20191113_SDR_2K_HEVC.mov" },
+      { label: "Cownose Rays", url: "https://sylvan.apple.com/Aerials/2x/Videos/MEX_A006_C008_SDR_20190923_SDR_2K_HEVC.mov" },
+      { label: "Dubai", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_DB_D011_C010_PSNK_DENOISE_v19_SDR_PS_20180914_SDR_2K_HEVC.mov" },
+      { label: "Dubai", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_DB_D008_C010_PSNK_v21_SDR_PS_20180914_F0F16157_SDR_2K_HEVC.mov" },
+      { label: "Dubai", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_DB_D002_C003_PSNK_v04_SDR_PS_20180914_SDR_2K_HEVC.mov" },
+      { label: "Dubai", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_DB_D001_C001_PSNK_v06_SDR_PS_20180824_SDR_2K_HEVC.mov" },
+      { label: "Dubai", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_DB_D001_C005_COMP_PSNK_v12_SDR_PS_20180912_SDR_2K_HEVC.mov" },
+      { label: "Grand Canyon", url: "https://sylvan.apple.com/Aerials/2x/Videos/G007_C004_UHD_SDR_2K_HEVC.mov" },
+      { label: "Grand Canyon", url: "https://sylvan.apple.com/Aerials/2x/Videos/G008_C015_UHD_SDR_2K_HEVC.mov" },
+      { label: "Grand Canyon", url: "https://sylvan.apple.com/Aerials/2x/Videos/G009_C003_UHD_SDR_2K_HEVC.mov" },
+      { label: "Grand Canyon", url: "https://sylvan.apple.com/Aerials/2x/Videos/G009_C014_UHD_SDR_2K_HEVC.mov" },
+      { label: "Grand Canyon", url: "https://sylvan.apple.com/Aerials/2x/Videos/G010_C026_UHD_SDR_v02_2K_HEVC.mov" },
+      { label: "Gray Reef Sharks", url: "https://sylvan.apple.com/Aerials/2x/Videos/FK_U009_C004_SDR_20191220_SDR_2K_HEVC.mov" },
+      { label: "Greenland", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GL_G002_C002_PSNK_v03_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "Greenland", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GL_G004_C010_PSNK_v04_SDR_PS_FINAL_20180709_SDR_2K_HEVC.mov" },
+      { label: "Greenland", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GL_G010_C006_PSNK_NOSUN_v12_SDR_PS_FINAL_20180709_SDR_2K_HEVC.mov" },
+      { label: "Hawaii", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_H012_C009_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "Hawaii", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_H004_C009_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "Hawaii", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_H005_C012_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "Hawaii", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_H004_C007_PS_v02_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "Hawaii", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_H007_C003_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "Hong Kong", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_HK_B005_C011_PSNK_v16_SDR_PS_20180914_SDR_2K_HEVC.mov" },
+      { label: "Hong Kong", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_HK_H004_C010_PSNK_v08_SDR_PS_20181009_SDR_2K_HEVC.mov" },
+      { label: "Hong Kong", url: "https://sylvan.apple.com/Aerials/2x/Videos/HK_H004_C013_2K_SDR_HEVC.mov" },
+      { label: "Hong Kong", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_HK_H004_C008_PSNK_v19_SDR_PS_20180914_SDR_2K_HEVC.mov" },
+      { label: "Humpback Whale", url: "https://sylvan.apple.com/Aerials/2x/Videos/g201_WH_D004_L014_SDR_20191031_SDR_2K_HEVC.mov" },
+      { label: "Iceland", url: "https://sylvan.apple.com/Aerials/2x/Videos/I003_C008_SDR_2K_HEVC.mov" },
+      { label: "Iceland", url: "https://sylvan.apple.com/Aerials/2x/Videos/I003_C011_SDR_2K_HEVC.mov" },
+      { label: "Iceland", url: "https://sylvan.apple.com/Aerials/2x/Videos/I004_C014_SDR_2K_HEVC.mov" },
+      { label: "Iceland", url: "https://sylvan.apple.com/Aerials/2x/Videos/I003_C015_SDR_2K_HEVC.mov" },
+      { label: "Iceland", url: "https://sylvan.apple.com/Aerials/2x/Videos/I003_C004_SDR_2K_HEVC.mov" },
+      { label: "Iceland", url: "https://sylvan.apple.com/Aerials/2x/Videos/I005_C008_CROP_SDR_2K_HEVC.mov" },
+      { label: "Iran and Afghanistan", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A083_C002_1130KZ_v04_SDR_PS_FINAL_20180725_SDR_2K_HEVC.mov" },
+      { label: "Ireland to Asia", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GMT329_117NC_401C_1037_IRELAND_TO_ASIA_v48_SDR_PS_FINAL_20180725_F0F6300_SDR_2K_HEVC.mov" },
+      { label: "Italy to Asia", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GMT329_113NC_396B_1105_ITALY_v03_SDR_FINAL_20180706_SDR_2K_HEVC.mov" },
+      { label: "Jacks", url: "https://sylvan.apple.com/Aerials/2x/Videos/BO_A014_C023_SDR_20190717_F240F3709_SDR_2K_HEVC.mov" },
+      { label: "Kelp", url: "https://sylvan.apple.com/Aerials/2x/Videos/KP_A010_C002_SDR_20190717_SDR_2K_HEVC.mov" },
+      { label: "Korea and Japan Night", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GMT026_363A_103NC_E1027_KOREA_JAPAN_NIGHT_v18_SDR_PS_20180907_SDR_2K_HEVC.mov" },
+      { label: "Liwa", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_LW_L001_C003__PSNK_DENOISE_v04_SDR_PS_FINAL_20180803_SDR_2K_HEVC.mov" },
+      { label: "Liwa", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_LW_L001_C006_PSNK_DENOISE_v02_SDR_PS_FINAL_20180709_SDR_2K_HEVC.mov" },
+      { label: "London", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_L007_C007_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "London", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_L012_c002_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "London", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_L010_C006_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "London", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_L004_C011_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "Los Angeles", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_LA_A008_C004_ALTB_ED_FROM_FLAME_RETIME_v46_SDR_PS_20180917_SDR_2K_HEVC.mov" },
+      { label: "Los Angeles", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_LA_A005_C009_PSNK_ALT_v09_SDR_PS_201809134_SDR_2K_HEVC.mov" },
+      { label: "Los Angeles", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_LA_A011_C003_DGRN_LNFIX_STAB_v57_SDR_PS_20181002_SDR_2K_HEVC.mov" },
+      { label: "Los Angeles", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_LA_A006_C004_v01_SDR_FINAL_PS_20180730_SDR_2K_HEVC.mov" },
+      { label: "Los Angeles", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_LA_A006_C008_PSNK_ALL_LOGOS_v10_SDR_PS_FINAL_20180801_SDR_2K_HEVC.mov" },
+      { label: "Los Angeles", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_LA_A009_C009_PSNK_v02_SDR_PS_FINAL_20180709_SDR_2K_HEVC.mov" },
+      { label: "New York", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_N013_C004_PS_v01_SDR_PS_20180925_F1970F7193_SDR_2K_HEVC.mov" },
+      { label: "New York", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_N008_C009_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "New York", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_N008_C003_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "New York", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_N003_C006_PS_v01_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "New York Night", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GMT307_136NC_134K_8277_NY_NIGHT_01_v25_SDR_PS_20180907_SDR_2K_HEVC.mov" },
+      { label: "New Zealand", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A105_C003_0212CT_FLARE_v10_SDR_PS_FINAL_20180711_SDR_2K_HEVC.mov" },
+      { label: "Nile Delta", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A050_C004_1027V8_v16_SDR_FINAL_20180706_SDR_2K_HEVC.mov" },
+      { label: "North America Aurora", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_GMT314_139M_170NC_NORTH_AMERICA_AURORA__COMP_v22_SDR_20181206_v12CC_SDR_2K_HEVC.mov" },
+      { label: "Palau Coral", url: "https://sylvan.apple.com/Aerials/2x/Videos/PA_A004_C003_SDR_20190719_SDR_2K_HEVC.mov" },
+      { label: "Palau Jellies", url: "https://sylvan.apple.com/Aerials/2x/Videos/PA_A001_C007_SDR_20190717_SDR_2K_HEVC.mov" },
+      { label: "Palau Jellies", url: "https://sylvan.apple.com/Aerials/2x/Videos/PA_A002_C009_SDR_20190730_ALT01_SDR_2K_HEVC.mov" },
+      { label: "Palau Jellies", url: "https://sylvan.apple.com/Aerials/2x/Videos/PA_A010_C007_SDR_20190717_SDR_2K_HEVC.mov" },
+      { label: "Patagonia", url: "https://sylvan.apple.com/Aerials/2x/Videos/P001_C005_UHD_SDR_2K_HEVC.mov" },
+      { label: "Patagonia", url: "https://sylvan.apple.com/Aerials/2x/Videos/P005_C002_UHD_SDR_2K_HEVC.mov" },
+      { label: "Patagonia", url: "https://sylvan.apple.com/Aerials/2x/Videos/P006_C002_UHD_SDR_2K_HEVC.mov" },
+      { label: "Patagonia", url: "https://sylvan.apple.com/Aerials/2x/Videos/P007_C027_UHD_SDR_2K_HEVC.mov" },
+      { label: "Red Sea Coral", url: "https://sylvan.apple.com/Aerials/2x/Videos/RS_A008_C010_SDR_20191218_SDR_2K_HEVC.mov" },
+      { label: "Sahara and Italy", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A009_C001_010181A_v09_SDR_PS_FINAL_20180725_SDR_2K_HEVC.mov" },
+      { label: "San Francisco", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A013_C012_0122D6_CC_v01_SDR_PS_FINAL_20180709_SDR_2K_HEVC.mov" },
+      { label: "San Francisco", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A015_C018_0128ZS_v03_SDR_PS_FINAL_20180709__SDR_2K_HEVC.mov" },
+      { label: "San Francisco", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A006_C003_1219EE_CC_v01_SDR_PS_FINAL_20180709_SDR_2K_HEVC.mov" },
+      { label: "San Francisco", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_1223LV_FLARE_v21_SDR_PS_FINAL_20180709_F0F5700_SDR_2K_HEVC.mov" },
+      { label: "San Francisco", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A008_C007_011550_CC_v01_SDR_PS_FINAL_20180709_SDR_2K_HEVC.mov" },
+      { label: "San Francisco", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A012_C014_1223PT_v53_SDR_PS_FINAL_20180709_F0F8700_SDR_2K_HEVC.mov" },
+      { label: "San Francisco", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A007_C017_01156B_v02_SDR_PS_20180925_SDR_2K_HEVC.mov" },
+      { label: "Scotland", url: "https://sylvan.apple.com/Aerials/2x/Videos/S003_C020_SDR_2K_HEVC.mov" },
+      { label: "Scotland", url: "https://sylvan.apple.com/Aerials/2x/Videos/S006_C007_SDR_2K_HEVC.mov" },
+      { label: "Scotland", url: "https://sylvan.apple.com/Aerials/2x/Videos/S005_C015_SDR_2K_HEVC.mov" },
+      { label: "Sea Stars", url: "https://sylvan.apple.com/Aerials/2x/Videos/BO_A012_C031_SDR_20190726_SDR_2K_HEVC.mov" },
+      { label: "Seals", url: "https://sylvan.apple.com/Aerials/2x/Videos/SE_A016_C009_SDR_20190717_SDR_2K_HEVC.mov" },
+      { label: "South Africa to North Asia", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A351_C001_v06_SDR_PS_20180725_SDR_2K_HEVC.mov" },
+      { label: "Southern California to Baja", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A114_C001_0305OT_v10_SDR_FINAL_22062018_SDR_2K_HEVC.mov" },
+      { label: "Tahiti Waves", url: "https://sylvan.apple.com/Aerials/2x/Videos/g201_TH_803_A001_8_SDR_20191031_SDR_2K_HEVC.mov" },
+      { label: "Tahiti Waves", url: "https://sylvan.apple.com/Aerials/2x/Videos/g201_TH_804_A001_8_SDR_20191031_SDR_2K_HEVC.mov" },
+      { label: "West Africa to the Alps", url: "https://sylvan.apple.com/Aerials/2x/Videos/comp_A001_C004_1207W5_v23_SDR_FINAL_20180706_SDR_2K_HEVC.mov" },
+      { label: "Yosemite", url: "https://sylvan.apple.com/Aerials/2x/Videos/Y004_C015_SDR_2K_HEVC.mov" },
+      { label: "Yosemite", url: "https://sylvan.apple.com/Aerials/2x/Videos/Y005_C003_SDR_2K_HEVC.mov" },
+      { label: "Yosemite", url: "https://sylvan.apple.com/Aerials/2x/Videos/Y002_C013_SDR_2K_HEVC.mov" },
+      { label: "Yosemite", url: "https://sylvan.apple.com/Aerials/2x/Videos/Y003_C009_SDR_2K_HEVC.mov" },
+      { label: "Yosemite", url: "https://sylvan.apple.com/Aerials/2x/Videos/Y011_C001_SDR_2K_HEVC.mov" },
+      { label: "Yosemite", url: "https://sylvan.apple.com/Aerials/2x/Videos/Y009_C015_SDR_2K_HEVC.mov" },
+      { label: "Yosemite", url: "https://sylvan.apple.com/Aerials/2x/Videos/Y011_C008_SDR_2K_HEVC.mov" }
+    ];
+    // <</AERIALS>>
+
+    class MinimalTVOS {
+      constructor() {
+        this.video = document.getElementById('aerialVideo');
+        this.dockContainer = document.getElementById('dockContainer');
+        this.collapseBtn = document.getElementById('collapseBtn');
+        this.leftArrow = document.getElementById('leftArrow');
+        this.cards = Array.from(document.querySelectorAll('.app-card'));
+        this.labelDisplay = document.getElementById('appLabelDisplay');
+        this.labelInner = document.getElementById('labelInnerText');
+        this.scrollViewport = document.getElementById('scrollViewport');
+        this.appsWrapper = document.getElementById('appsWrapper');
+        this.dockBar = document.querySelector('.dock-bar');
+        this.osdToast = document.getElementById('osdToast');
+
+        this.isDockOpen = false;
+        this.focusZone = 'cards'; // 'cards' | 'collapse'
+        this.currentIndex = 0;
+        this.toastTimer = null;
+        this.audioCtx = null;
+
+        // Tự ẩn Dock sau khi người dùng ngừng bấm remote (ms)
+        this.IDLE_MS = 5000;
+        this.idleTimer = null;
+
+        // Cache số liệu layout để cuộn O(1), không đo DOM mỗi lần đổi focus
+        this.cardW = 0;
+        this.cxVp = [];    // tâm card theo gốc toạ độ viewport (dùng để cuộn)
+        this.cxBar = [];   // tâm card theo gốc toạ độ dock-bar (dùng để đặt nhãn)
+        this.vpCenter = 0;
+        this.vpInnerLeft = 0;
+        this.wrapX = 0;
+        this.minT = 0;
+        this.maxT = 0;
+
+        this.initVideo();
+        this.initClock();
+        this.initWeather();
+        this.bindEvents();
+
+        var self = this;
+        this.computeMetrics();
+        this.updateFocus();
+        window.addEventListener('resize', function() {
+          self.computeMetrics();
+          self.updateFocus();
+        });
+      }
+
+      // Đo layout 1 lần (và mỗi lần resize) - tránh layout thrashing khi cuộn.
+      // Đo tâm mỗi card theo 2 hệ toạ độ: viewport (để cuộn) và dock-bar (để đặt nhãn).
+      computeMetrics() {
+        var cards = this.cards;
+        if (!cards.length) return;
+
+        // Tạm đưa wrapper về gốc để đo vị trí layout thuần (không dính transform đang áp)
+        var prevT = this.appsWrapper.style.transform;
+        this.appsWrapper.style.transform = 'translate3d(0, 0, 0)';
+
+        var vp = this.scrollViewport;
+        var vpRect = vp.getBoundingClientRect();
+        var barRect = this.dockBar.getBoundingClientRect();
+        var vpOriginX = vpRect.left + vp.clientLeft;
+        var barOriginX = barRect.left + this.dockBar.clientLeft;
+
+        this.cardW = cards[0].offsetWidth;
+        this.cxVp = [];
+        this.cxBar = [];
+        for (var i = 0; i < cards.length; i++) {
+          var r = cards[i].getBoundingClientRect();
+          var center = r.left + r.width / 2;
+          this.cxVp[i] = center - vpOriginX;
+          this.cxBar[i] = center - barOriginX;
+        }
+
+        this.appsWrapper.style.transform = prevT || 'translate3d(0, 0, 0)';
+
+        var n = cards.length;
+        this.vpCenter = vp.clientWidth / 2;                    // tâm vùng nhìn của dock
+        this.vpInnerLeft = this.cxVp[0] - this.cardW / 2;      // = padding trái viewport
+        var contentRight = this.cxVp[n - 1] + this.cardW / 2;
+
+        this.maxT = 0;                                         // không kéo lộ khoảng trống bên trái
+        this.minT = Math.min(0, (vp.clientWidth - this.vpInnerLeft) - contentRight);
+      }
+
+      // Vị trí cuộn để tâm card đang focus nằm giữa vùng nhìn dock (đã kẹp biên)
+      targetT(index) {
+        var t = this.vpCenter - this.cxVp[index];
+        if (t > this.maxT) t = this.maxT;
+        if (t < this.minT) t = this.minT;
+        return t;
+      }
+
+      initVideo() {
+        var self = this;
+
+        // Clip Dubai nhúng sẵn trên TV: CHỈ dùng khi mất mạng (offline fallback).
+        this.fallbackSources = [
+          'file:///media/developer/apps/usr/palm/applications/com.apple.aerial.tvos/videos/Dubai_Skyline_Sonoma_4K_Compressed.mp4',
+          'videos/Dubai_Skyline_Sonoma_4K_Compressed.mp4'
+        ];
+        this.fallbackIndex = 0;
+        this.usingFallback = false;
+        this.failStreak = 0;
+        this.transitioning = false;
+        this.suspended = false;
+        this.curSrc = '';
+        this.curIsStartupClip = false;
+        this.startupTime = 0;
+        this.startupEarlyTimer = null;
+
+        // Toàn bộ clip 4K HEVC chính chủ Apple (xem AERIALS ở đầu file), xáo trộn.
+        this.clips = (typeof AERIALS !== 'undefined' && AERIALS.length) ? AERIALS.slice() : [];
+        this.shuffle(this.clips);
+
+        // HAI tầng video: `cur` đang chiếu, `nxt` ngầm hút clip kế.
+        // VPU chỉ giải mã 1 video/lúc -> nxt chỉ ĐỌC BYTE (preload='metadata')
+        // nên KHÔNG cướp decoder của cur, nên cur vẫn chạy và KHÔNG cần lớp tối.
+        this.videoA = document.getElementById('aerialVideo');
+        this.videoB = document.getElementById('aerialVideoNext');
+        this.cur = this.videoA;
+        this.nxt = this.videoB;
+        this.videoEl = this.cur;
+        this.dipEl = document.getElementById('videoDip');
+
+        var a = this.videoA, b = this.videoB;
+        a.muted = true; b.muted = true;
+        b.preload = 'metadata';
+
+        // Gắn cùng bộ handler cho cả hai tầng; chỉ xử lý sự kiện của tầng đang chiếu.
+        var onTime = function(ev) { self.onTimeUpdate(ev); };
+        var onEnd = function(ev) { if (ev.target === self.cur) self.startTransition(false); };
+        var onErr = function(ev) { self.onVideoError(ev); };
+        [a, b].forEach(function(el) {
+          el.addEventListener('timeupdate', onTime);
+          el.addEventListener('ended', onEnd);
+          el.addEventListener('error', onErr);
+        });
+
+        // Khởi động nguội: hiện nền Aerial động, rồi hút & chiếu clip đầu tiên.
+        this.dip(true);
+        this.loadFirst();
+      }
+
+      // Chuyển clip sớm 0.6s để tầng nxt (đã hút sẵn) kịp tiếp quản mượt mà.
+      onTimeUpdate(ev) {
+        var el = ev.target;
+        if (el !== this.cur) return;
+        if (this.transitioning) return;
+        var d = el.duration;
+        if (d && isFinite(d) && d - el.currentTime <= 0.6) this.startTransition(false);
+      }
+
+      shuffle(arr) {
+        for (var i = arr.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+        }
+      }
+
+      // Làm tối màn hình với hiệu ứng cinematic dip nhẹ (0.35s).
+      dip(black) {
+        if (this.dipEl) this.dipEl.style.opacity = black ? '1' : '0';
+        // Bật/tắt animation nền Aerial: chỉ trôi khi nền đang hiện.
+        if (black) document.body.classList.add('dip-on');
+        else document.body.classList.remove('dip-on');
+      }
+
+      // Chọn URL clip kế tiếp (xoay vòng danh sách; tự rơi về Dubai khi mất mạng).
+      nextSrc() {
+        if (this.failStreak >= 2 || !this.clips.length) {
+          return this.fallbackSources[this.fallbackIndex++ % this.fallbackSources.length];
+        }
+        var s = this.clips.shift().url;
+        if (!this.clips.length) {            // hết danh sách -> xáo lại và lặp vô hạn
+          this.clips = (typeof AERIALS !== 'undefined' ? AERIALS.slice() : []);
+          this.shuffle(this.clips);
+        }
+        if (s === this.curSrc && this.clips.length) s = this.clips.shift().url;  // tránh lặp cùng clip
+        this.curSrc = s;
+        return s;
+      }
+
+      // Hút trước clip kế vào tầng nxt: preload metadata để KHÔNG cướp VPU decoder của cur
+      prefetchNext() {
+        var n = this.nxt;
+        if (!n) return;
+        try { n.pause(); } catch (e) {}
+        n._src = this.nextSrc();
+        n.preload = 'metadata';
+        n.setAttribute('src', n._src);
+
+        // Smart Early Switch: Nếu vừa mở TV (đang phát Dubai local), ngay khi
+        // clip online tải xong metadata (loadedmetadata / canplay) và TV đã chạy ít nhất ~3.5s,
+        // lập tức chuyển mượt sang clip online mà không bắt người dùng đợi hết video Dubai.
+        if (this.curIsStartupClip) {
+          var self = this;
+          var triggered = false;
+          var onReady = function() {
+            if (triggered) return;
+            triggered = true;
+            n.removeEventListener('loadedmetadata', onReady);
+            n.removeEventListener('canplay', onReady);
+            if (!self.curIsStartupClip) return;
+            var elapsed = Date.now() - self.startupTime;
+            var delay = Math.max(0, 3500 - elapsed);
+            clearTimeout(self.startupEarlyTimer);
+            self.startupEarlyTimer = setTimeout(function() {
+              if (self.curIsStartupClip && !self.transitioning) {
+                self.curIsStartupClip = false;
+                self.startTransition(false);
+              }
+            }, delay);
+          };
+          if (n.readyState >= 1) {
+            onReady();
+          } else {
+            n.addEventListener('loadedmetadata', onReady);
+            n.addEventListener('canplay', onReady);
+          }
+        }
+      }
+
+      // Chiếu clip đầu tiên lúc khởi động: ưu tiên clip local để lên hình tức thì (<0.2s) không chờ Wi-Fi
+      loadFirst() {
+        var el = this.cur;
+        this.curSrc = '';
+        this.curIsStartupClip = true;
+        this.startupTime = Date.now();
+        var url = (this.fallbackSources && this.fallbackSources[0]) || this.nextSrc();
+        el._src = url;
+        this.curSrc = url;
+        this.playClip(el, url);
+      }
+
+      // Đặt src rồi phát một tầng; khi đã lên hình thì hút trước clip kế.
+      playClip(el, url) {
+        var self = this;
+        var done = false;
+        function reveal() {
+          if (done) return;
+          done = true;
+          el.removeEventListener('playing', reveal);
+          clearTimeout(self.revealTimer);
+          self.failStreak = 0;
+          self.transitioning = false;
+          self.dip(false);
+          self.prefetchNext();
+        }
+        this.revealTimer = setTimeout(function() { reveal(); }, 6000);  // an toàn: không kẹt nền
+        el.addEventListener('playing', reveal);
+        el.preload = 'auto';
+        el.setAttribute('src', url);
+        if (this.suspended) { this._needPlay = el; return; }   // để resume() phát sau
+        var p = el.play();
+        if (p && p.catch) p.catch(function() { if (!done) { el.removeEventListener('playing', reveal); self.onVideoError({ target: el }); } });
+      }
+
+      // Chuyển sang clip kế với hiệu ứng cinematic dissolve mượt mà (350ms).
+      // webOS VPU chỉ giải mã 1 stream phần cứng: cần pause cur để nhường decoder cho nxt.
+      startTransition(forceDip) {
+        if (this.transitioning) return;
+        if (this.suspended) return;   // đang phủ overlay -> không xoay clip
+        this.transitioning = true;
+        if (!this.nxt._src) this.prefetchNext();
+
+        var n = this.nxt, self = this;
+        var old = this.cur;
+
+        // Bắt đầu hiệu ứng dip mượt
+        this.dip(true);
+
+        var ok = false;
+        function onPlaying() {
+          if (ok) return;
+          ok = true;
+          n.removeEventListener('playing', onPlaying);
+          clearTimeout(self.transTimer);
+          self.commitSwap(n);
+        }
+        n.addEventListener('playing', onPlaying);
+        this.transTimer = setTimeout(function() {   // an toàn: không kẹt nền
+          if (ok) return;
+          n.removeEventListener('playing', onPlaying);
+          self.commitSwap(n);
+        }, 4000);
+
+        // Đợi 120ms cho lớp dip phủ nhẹ, giải phóng VPU decoder của cur trước khi nxt phát
+        setTimeout(function() {
+          try { old.pause(); } catch (e) {}
+          n.preload = 'auto';
+          var p = n.play();
+          if (p && p.catch) p.catch(function(e) {
+            if (ok) return;
+            self._playErr = String((e && e.name) || e);
+            clearTimeout(self.transTimer);
+            n.removeEventListener('playing', onPlaying);
+            self.onVideoError({ target: n });
+          });
+        }, 120);
+      }
+
+      // Hoàn tất chuyển: nxt thành tầng đang chiếu, giải phóng tầng cũ, dọn sạch buffer.
+      commitSwap(n) {
+        var old = this.cur;
+        this.cur = n;
+        this.nxt = old;
+        this.videoEl = this.cur;
+        this.curSrc = n._src || this.curSrc;
+        this.curIsStartupClip = false;
+        try {
+          var p = n.play();
+          if (p && p.catch) p.catch(function() {});
+        } catch (e) {}
+        try { old.pause(); } catch (e) {}
+        old.removeAttribute('src');
+        try { old.load(); } catch (e) {}
+        old._src = '';
+        this.failStreak = 0;
+        this.transitioning = false;
+        this.dip(false);
+        this.prefetchNext();
+      }
+
+      onVideoError(ev) {
+        if (this.suspended) return;   // đang phủ overlay -> bỏ qua lỗi mạng lặt vặt
+        var el = ev && ev.target;
+        this.failStreak++;
+        if (el === this.nxt) {
+          // Clip hút trước bị hỏng -> bỏ, hút clip khác cho lần sau.
+          this.nxt._src = '';
+          if (this.failStreak < 6) this.prefetchNext();
+          return;
+        }
+        // Tầng đang chiếu lỗi -> chuyển ngay (có nền Aerial động che).
+        this.curIsStartupClip = false;
+        this.transitioning = false;
+        this.startTransition(true);
+      }
+
+      // Tạm ngưng nền Aerial (khi overlay AirPlay phủ kín). Video 4K HEVC chiếm
+      // phần lớn CPU/GPU -> dừng nó là cách giảm tải lớn nhất cho TV yếu.
+      suspend() {
+        if (this.suspended) return;
+        this.suspended = true;
+        try { this.videoA.pause(); } catch (e) {}
+        try { this.videoB.pause(); } catch (e) {}
+      }
+
+      resume() {
+        if (!this.suspended) return;
+        this.suspended = false;
+        if (this._needPlay) {                 // clip bị hoãn lúc suspend
+          var el = this._needPlay; this._needPlay = null;
+          var p = el.play();
+          if (p && p.catch) p.catch(function() {});
+        } else {
+          try { this.cur.play(); } catch (e) {}
+        }
+        this.dip(false);
+      }
+
+      bindEvents() {
+        var self = this;
+
+        // Xử lý Remote Control D-pad & Khóa phím BACK (chỉ gán trên window với useCapture=true, tránh kích hoạt 2 lần)
+        var onKey = function(e) { self.handleKey(e); };
+        window.addEventListener('keydown', onKey, true);
+        var swallowBack = function(e) {
+          var code = e.keyCode || e.which;
+          if (code === 461 || code === 27) {
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        };
+        window.addEventListener('keyup', swallowBack, true);
+
+        // Khóa PopState để WebAppMgr không bao giờ minimize app về Home
+        window.addEventListener('popstate', function(e) {
+          e.preventDefault();
+          history.pushState(null, null, location.href);
+        });
+        try { history.pushState(null, null, location.href); } catch (e) {}
+
+        // Magic Remote: di chuột cũng đánh thức Dock
+        window.addEventListener('mousemove', function() {
+          self.wake();
+        });
+
+        // Click trên Collapse Btn
+        this.collapseBtn.addEventListener('click', function() {
+          self.closeDock();
+        });
+
+        // Click trên Left Arrow
+        this.leftArrow.addEventListener('click', function() {
+          self.openDock();
+        });
+
+        // Click trên từng Card
+        this.cards.forEach(function(card, idx) {
+          card.addEventListener('click', function() {
+            self.currentIndex = idx;
+            self.focusZone = 'cards';
+            self.updateFocus();
+            self.launchApp(card);
+          });
+        });
+      }
+
+      // Người dùng vừa chạm nút remote → hiện Dock, và hẹn giờ tự ẩn khi ngừng bấm
+      wake() {
+        if (!this.isDockOpen) {
+          this.openDock();
+        } else {
+          this.scheduleIdle();
+        }
+      }
+
+      scheduleIdle() {
+        var self = this;
+        clearTimeout(this.idleTimer);
+        this.idleTimer = setTimeout(function() {
+          if (self.isDockOpen) self.closeDock();
+        }, this.IDLE_MS);
+      }
+
+      handleKey(e) {
+        var code = e.keyCode || e.which;
+
+        // BACK (461 on LG Remote, 27 ESC): Đóng Dock nếu đang mở; nếu Dock đang đóng thì KHÔNG LÀM GÌ CẢ (không thoát/minimize app)
+        if (code === 461 || code === 27) {
+          e.preventDefault();
+          e.stopPropagation();
+          if (this.isDockOpen) {
+            this.closeDock();
+          }
+          return;
+        }
+
+        // Bất kỳ nút nào trên remote cũng đánh thức Dock nếu đang ẩn
+        var wasOpen = this.isDockOpen;
+        this.wake();
+
+        // Dock VỪA được đánh thức bởi chính nút này: chỉ hiện, không thực thi hành động
+        if (!wasOpen) {
+          if (code === 13 || code === 37 || code === 38 || code === 39 || code === 40) {
+            e.preventDefault();
+          }
+          return;
+        }
+
+        // Chống lặp phím quá nhanh (throttle 100ms) giúp chuyển card mượt mà, triệt tiêu hoàn toàn nhảy cóc & lag
+        if (code === 37 || code === 39) {
+          var now = Date.now();
+          if (this._lastKeyTime && (now - this._lastKeyTime < 100)) {
+            e.preventDefault();
+            return;
+          }
+          this._lastKeyTime = now;
+        }
+
+        // 13: Enter/OK
+        // 37: Left, 38: Up, 39: Right, 40: Down
+        if (code === 37) {
+          this.moveLeft();
+          e.preventDefault();
+        } else if (code === 39) {
+          this.moveRight();
+          e.preventDefault();
+        } else if (code === 38) { // Up — ẩn Dock
+          this.closeDock();
+          e.preventDefault();
+        } else if (code === 40) { // Down
+          // Dock đang mở: không cần xử lý thêm (đã đánh thức ở trên)
+        } else if (code === 13) {
+          this.handleEnter();
+          e.preventDefault();
+        }
+      }
+
+      moveLeft() {
+        if (!this.isDockOpen) return;
+        this.playTone(480, 0.025);
+
+        if (this.focusZone === 'cards') {
+          if (this.currentIndex > 0) {
+            this.currentIndex--;
+            this.updateFocus();
+          } else {
+            this.focusZone = 'collapse';
+            this.updateFocus();
+          }
+        }
+      }
+
+      moveRight() {
+        if (!this.isDockOpen) return;
+        this.playTone(480, 0.025);
+
+        if (this.focusZone === 'collapse') {
+          this.focusZone = 'cards';
+          this.currentIndex = 0;
+          this.updateFocus();
+        } else if (this.focusZone === 'cards') {
+          if (this.currentIndex < this.cards.length - 1) {
+            this.currentIndex++;
+            this.updateFocus();
+          }
+        }
+      }
+
+      handleEnter() {
+        if (!this.isDockOpen) {
+          this.openDock();
+          return;
+        }
+
+        if (this.focusZone === 'collapse') {
+          this.closeDock();
+        } else if (this.focusZone === 'cards') {
+          var card = this.cards[this.currentIndex];
+          this.launchApp(card);
+        }
+      }
+
+      openDock() {
+        this.isDockOpen = true;
+        document.body.classList.add('dock-open');
+        this.focusZone = 'cards';
+        this.updateFocus();
+        this.playTone(540, 0.035);
+        this.scheduleIdle();
+      }
+
+      closeDock() {
+        this.isDockOpen = false;
+        document.body.classList.remove('dock-open');
+        clearTimeout(this.idleTimer);
+        this.idleTimer = null;
+        this.focusZone = 'cards';
+        this.collapseBtn.classList.remove('focused');
+        this.cards.forEach(function(c) { c.classList.remove('focused'); });
+        this.playTone(380, 0.035);
+      }
+
+      updateFocus() {
+        if (!this.isDockOpen) return;
+
+        var self = this;
+
+        if (this.focusZone === 'collapse') {
+          this.collapseBtn.classList.add('focused');
+          this.cards.forEach(function(c) { c.classList.remove('focused'); });
+          this.labelDisplay.style.opacity = '0';
+          return;
+        }
+
+        this.collapseBtn.classList.remove('focused');
+        this.labelDisplay.style.opacity = '1';
+
+        this.cards.forEach(function(card, idx) {
+          if (idx === self.currentIndex) {
+            card.classList.add('focused');
+          } else {
+            card.classList.remove('focused');
+          }
+        });
+
+        var focused = this.cards[this.currentIndex];
+        if (!focused) return;
+
+        // Cuộn bằng transform (GPU) — tâm card focus nằm giữa dock
+        this.wrapX = this.targetT(this.currentIndex);
+        this.appsWrapper.style.transform = 'translate3d(' + this.wrapX + 'px, 0, 0)';
+
+        // Nhãn tên app trôi theo card đang focus (cùng easing nên khớp mượt)
+        this.labelInner.textContent = focused.dataset.title || '';
+        this.labelDisplay.style.transform = 'translate3d(' + (this.cxBar[this.currentIndex] + this.wrapX) + 'px, 0, 0)';
+      }
+
+      launchApp(card) {
+        if (!card) return;
+        this.playTone(660, 0.06);
+        var appId = card.dataset.appid;
+        var title = card.dataset.title;
+        this.showToast('Đang mở ' + title + '...');
+
+        if (window.webOS && window.webOS.service) {
+          window.webOS.service.request('luna://com.webos.applicationManager', {
+            method: 'launch',
+            parameters: { id: appId }
+          });
+        }
+      }
+
+      showToast(text) {
+        var self = this;
+        this.osdToast.textContent = text;
+        this.osdToast.classList.add('show');
+        clearTimeout(this.toastTimer);
+        this.toastTimer = setTimeout(function() {
+          self.osdToast.classList.remove('show');
+        }, 1200);
+      }
+
+      playTone(freq, duration) {
+        freq = freq || 440;
+        duration = duration || 0.03;
+        try {
+          if (!this.audioCtx) {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) this.audioCtx = new AC();
+          }
+          if (!this.audioCtx) return;
+          if (this.audioCtx.state === 'suspended') this.audioCtx.resume();
+
+          var now = this.audioCtx.currentTime;
+          var osc = this.audioCtx.createOscillator();
+          var gain = this.audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now);
+          osc.frequency.exponentialRampToValueAtTime(180, now + duration);
+          gain.gain.setValueAtTime(0.04, now);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+          osc.connect(gain);
+          gain.connect(this.audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + duration);
+          osc.onended = function() {
+            osc.disconnect();
+            gain.disconnect();
+          };
+        } catch (_) {}
+      }
+
+      initClock() {
+        var clockEl = document.getElementById('clockText');
+        var dateEl = document.getElementById('clockDate');
+        var WD = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+        function updateClock() {
+          var d = new Date();
+          var h = String(d.getHours());
+          var m = String(d.getMinutes());
+          if (h.length < 2) h = '0' + h;
+          if (m.length < 2) m = '0' + m;
+          clockEl.innerHTML = h + '<span class="colon">:</span>' + m;
+          if (dateEl) dateEl.textContent = WD[d.getDay()] + ' · ' + d.getDate() + '/' + (d.getMonth() + 1);
+        }
+        updateClock();
+        setInterval(updateClock, 10000);
+      }
+
+      initWeather() {
+        function fetchWeather() {
+          fetch('https://api.open-meteo.com/v1/forecast?latitude=10.8231&longitude=106.6297&current=temperature_2m,weather_code&timezone=auto')
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+              if (data && data.current) {
+                document.getElementById('weatherTemp').textContent = Math.round(data.current.temperature_2m) + '°';
+              }
+            })
+            .catch(function() {});
+        }
+        fetchWeather();
+        setInterval(fetchWeather, 1800000);
+      }
+    }
+
+    // =========================================================================
+    // NowPlaying — cầu nối AirPlay (Node bridge @ 127.0.0.1:8899) -> overlay
+    // Poll /state, tải bìa /art.jpg, đồng bộ lời .lrc theo tiến độ bài hát.
+    // =========================================================================
+    class NowPlaying {
+      constructor() {
+        this.root = document.getElementById('nowPlaying');
+        this.artEl = document.getElementById('npArt');
+        this.bgEl = document.getElementById('npBg');
+        this.titleEl = document.getElementById('npTitle');
+        this.metaEl = document.getElementById('npMeta');
+        this.lyricsEl = document.getElementById('npLyrics');
+        this.trackEl = document.getElementById('npLyricsTrack');
+
+        this.STATE_URL = 'http://127.0.0.1:8899/state';
+        this.ART_URL = 'http://127.0.0.1:8899/art.jpg';
+        this.RATE = 44100;   // đơn vị RTP trong trường progress (mẫu/giây)
+        // Giây: bù độ lệch giữa vị trí báo cáo và tiếng NGHE THẬT. Đo thực tế:
+        // `position` (từ prgr của shairport) ~= đúng vị trí đang nghe, nên bù ~0.
+        // Chỉnh lúc chạy: __np.setOffset(x).
+        this.SYNC_OFFSET = 0.0;
+        this._H = 0;         // cache chiều cao khung lời (px) — tránh đọc lại
+
+        this.mtv = window.__mtv || null;   // tạm ngưng video Aerial khi overlay hiện
+
+        this.visible = false;
+        this.lastKey = '';
+        this.lastArtSeq = -1;
+        this.lyricsCache = {};
+        this.lyricsKey = '';
+        this.inactiveSince = 0;
+
+        this.VIS = 4;           // 4 dòng quanh dòng đang hát (nhẹ GPU)
+        this.GAP = 14;          // khoảng cách dọc giữa các dòng (px)
+        this.all = [];          // toàn bộ dòng { t, text } — chỉ DỮ LIỆU, không DOM
+        this.slotMap = {};      // index -> element đang render (tối đa VIS)
+        this.lineWords = {};    // index -> [span từ] của dòng đang render
+        this.base = 0;          // index dòng ở slot trên cùng
+        this.metaTimer = null;
+        this.activeIdx = -1;
+        this.baseElapsed = 0;   // giây đã hát tại mốc neo
+        this.basePerf = 0;      // mốc performance.now() tương ứng
+        this.haveProgress = false;
+        this.lastPos = null;    // giá trị vị trí đã neo (để không reset mỗi poll)
+        this.rafId = null;
+        this.polling = false;
+        this.plainMode = false; // chỉ có lời plain (không mốc thời gian)
+
+        var self = this;
+        this.poll();
+        setInterval(function() { self.poll(); }, 1500);
+      }
+
+      poll() {
+        if (this.polling) return;
+        this.polling = true;
+        var self = this;
+        fetch(this.STATE_URL + '?t=' + Date.now())
+          .then(function(r) { return r.json(); })
+          .then(function(s) { self.onState(s); })
+          .catch(function() {})
+          .then(function() { self.polling = false; });
+      }
+
+      onState(s) {
+        if (!s) return;
+
+        if (!s.active) {
+          if (this.visible) {
+            if (!this.inactiveSince) this.inactiveSince = Date.now();
+            else if (Date.now() - this.inactiveSince > 2500) this.hide();
+          }
+          return;
+        }
+        this.inactiveSince = 0;
+
+        var key = (s.title || '') + '\u0001' + (s.artist || '');
+        if (key !== this.lastKey) {
+          this.lastKey = key;
+          this.lastPos = null;
+          this.haveProgress = false;
+          this.titleEl.textContent = s.title || '';
+          this.flashMeta();
+          this.fetchLyrics(s.title, s.artist);
+          this.show();
+        }
+
+        if (typeof s.artSeq === 'number' && s.artSeq !== this.lastArtSeq) {
+          this.lastArtSeq = s.artSeq;
+          this.setArt(s.artSeq);
+        }
+
+        // Offset có thể do bridge gửi (tinh chỉnh không cần deploy lại).
+        if (typeof s.syncOffset === 'number' && isFinite(s.syncOffset)) {
+          this.SYNC_OFFSET = s.syncOffset;
+        }
+
+        // Vị trí: ưu tiên `position` (bridge nội suy sống); fallback progress thô.
+        var pos = null;
+        if (typeof s.position === 'number' && isFinite(s.position)) {
+          pos = s.position;
+        } else if (s.progress) {
+          var m = String(s.progress).split('/');
+          if (m.length === 3) {
+            var start = parseFloat(m[0]);
+            var nowp = parseFloat(m[1]);
+            if (isFinite(start) && isFinite(nowp)) pos = Math.max(0, (nowp - start) / this.RATE);
+          }
+        }
+        if (pos !== null) {
+          var nowms = (window.performance && performance.now) ? performance.now() : Date.now();
+          // Vị trí nội suy từ mốc neo cũ (KHÔNG trừ offset — offset chỉ áp khi
+          // chọn dòng lời). Chỉ neo lại khi lệch > 0.25s (seek/trôi thật) để
+          // tránh giật nhỏ mỗi 1.5s do nhiễu mạng.
+          var predicted = this.baseElapsed + (nowms - this.basePerf) / 1000;
+          if (!this.haveProgress || Math.abs(pos - predicted) > 0.25) {
+            this.baseElapsed = pos;
+            this.basePerf = nowms;
+            this.haveProgress = true;
+            this.lastPos = pos;
+          }
+        }
+        if (this.haveProgress) this.tick();
+      }
+
+      setArt(seq) {
+        var url = this.ART_URL + '?seq=' + seq;
+        var self = this;
+        this.artEl.classList.remove('loaded');
+        try { this.artEl.crossOrigin = 'anonymous'; } catch (e) {}   // để canvas đọc được pixel (CORS *)
+        this.artEl.onload = function() {
+          self.artEl.classList.add('loaded');
+          self.sampleAmbient();
+        };
+        this.artEl.src = url;
+      }
+
+      // Lấy vài màu trung bình từ bìa -> nền gradient (rẻ hơn blur full-screen).
+      sampleAmbient() {
+        /* Trong suốt hoàn toàn: không vẽ gradient nền (theo yêu cầu). */
+      }
+
+      avgRegion(d, x0, y0, w, h) {
+        var r = 0, g = 0, b = 0, n = 0;
+        for (var y = y0; y < y0 + h; y++) {
+          for (var x = x0; x < x0 + w; x++) {
+            var i = (y * 24 + x) * 4;
+            r += d[i]; g += d[i + 1]; b += d[i + 2]; n++;
+          }
+        }
+        return [Math.round(r / n), Math.round(g / n), Math.round(b / n)];
+      }
+
+      // Bão hoà nhẹ + kéo sáng xuống thấp để làm nền dịu, không chói.
+      punch(rgb) {
+        var h = this.rgb2hsl(rgb);
+        h[1] = Math.min(0.72, Math.max(0.34, h[1] * 1.3));
+        h[2] = Math.min(0.42, Math.max(0.14, h[2] * 0.72));
+        var o = this.hsl2rgb(h);
+        return 'rgba(' + o[0] + ',' + o[1] + ',' + o[2] + ',0.42)';
+      }
+
+      rgb2hsl(rgb) {
+        var r = rgb[0] / 255, g = rgb[1] / 255, b = rgb[2] / 255;
+        var mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+        var h = 0, s = 0, l = (mx + mn) / 2, d = mx - mn;
+        if (d > 0) {
+          s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn);
+          if (mx === r) h = ((g - b) / d + (g < b ? 6 : 0));
+          else if (mx === g) h = (b - r) / d + 2;
+          else h = (r - g) / d + 4;
+          h /= 6;
+        }
+        return [h, s, l];
+      }
+
+      hsl2rgb(hsl) {
+        var h = hsl[0], s = hsl[1], l = hsl[2];
+        function f(p, q, t) {
+          if (t < 0) t += 1; if (t > 1) t -= 1;
+          if (t < 1 / 6) return p + (q - p) * 6 * t;
+          if (t < 1 / 2) return q;
+          if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+          return p;
+        }
+        if (s === 0) { var v = Math.round(l * 255); return [v, v, v]; }
+        var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+        var p = 2 * l - q;
+        return [Math.round(f(p, q, h + 1 / 3) * 255), Math.round(f(p, q, h) * 255), Math.round(f(p, q, h - 1 / 3) * 255)];
+      }
+
+      // Lời được LAUNCHER tự fetch qua LRCLIB (CORS *): bất đồng bộ, không fork
+      // tiến trình curl trên TV (fork chậm vì áp lực RAM/swap → nghẽn event loop).
+      fetchLyrics(title, artist) {
+        var t = this.cleanQuery(title);
+        var a = this.cleanQuery(artist);
+        if (!t) return;
+        var key = t + '\u0001' + a;
+        this.lyricsKey = key;
+        var cached = this.lyricsCache[key];
+        if (cached) { this.setLyrics(cached.synced, cached.plain); return; }
+        this.setLyrics(null, null);
+        var t2 = t.replace(/[\(\[]([^\)\]]*)[\)\]]/g, ' ').replace(/\s+/g, ' ').trim() || t;
+        var urls = [
+          'https://lrclib.net/api/search?track_name=' + encodeURIComponent(t) + (a ? '&artist_name=' + encodeURIComponent(a) : ''),
+          'https://lrclib.net/api/search?q=' + encodeURIComponent(t + ' ' + a)
+        ];
+        if (t2 !== t) urls.push('https://lrclib.net/api/search?track_name=' + encodeURIComponent(t2) + (a ? '&artist_name=' + encodeURIComponent(a) : ''));
+        this.collectLyrics(urls, 0, key, null, 0);
+      }
+
+      cleanQuery(s) {
+        return String(s || '')
+          .replace(/\s*[\u2022\u00b7].*$/, '')        // cắt " • ..." / " · ..."
+          .replace(/\(\s*(feat|ft|with)\.?[^)]*\)/gi, '')
+          .replace(/\s+/g, ' ').trim();
+      }
+
+      // Duyệt từng truy vấn; ưu tiên bản CÓ syncedLyrics; giữ plainLyrics làm
+      // phương án dự phòng. Thất bại toàn bộ -> thử lại cả chuỗi 1 lần.
+      collectLyrics(urls, i, key, bestPlain, tries) {
+        var self = this;
+        if (key !== this.lyricsKey) return;
+        if (i >= urls.length) {
+          if (bestPlain) { this.finishLyrics(key, null, bestPlain); return; }
+          if (tries < 1) {
+            setTimeout(function() { self.collectLyrics(urls, 0, key, null, tries + 1); }, 3000);
+          } else {
+            this.finishLyrics(key, null, null);
+          }
+          return;
+        }
+        this.fetchLyricsUrl(urls[i], key, 0, function(arr) {
+          if (key !== self.lyricsKey) return;
+          if (arr && arr.length) {
+            var synced = null, plain = null;
+            for (var k = 0; k < arr.length; k++) {
+              if (!synced && arr[k] && arr[k].syncedLyrics) synced = arr[k].syncedLyrics;
+              if (!plain && arr[k] && arr[k].plainLyrics) plain = arr[k].plainLyrics;
+            }
+            if (synced) { self.finishLyrics(key, synced, plain); return; }
+            self.collectLyrics(urls, i + 1, key, bestPlain || plain, tries);
+          } else {
+            self.collectLyrics(urls, i + 1, key, bestPlain, tries);
+          }
+        }, function() {
+          if (key !== self.lyricsKey) return;
+          self.collectLyrics(urls, i + 1, key, bestPlain, tries);
+        });
+      }
+
+      finishLyrics(key, synced, plain) {
+        this.lyricsCache[key] = { synced: synced, plain: plain };
+        if (key === this.lyricsKey) this.setLyrics(synced, plain);
+      }
+
+      fetchLyricsUrl(url, key, attempt, onOk, onFail) {
+        var self = this;
+        fetch(url)
+          .then(function(r) { if (!r.ok) throw new Error('http ' + r.status); return r.json(); })
+          .then(function(j) { if (key !== self.lyricsKey) return; onOk(j); })
+          .catch(function() {
+            if (key !== self.lyricsKey) return;
+            if (attempt < 1) setTimeout(function() { self.fetchLyricsUrl(url, key, attempt + 1, onOk, onFail); }, 2000);
+            else onFail();
+          });
+      }
+
+      // Tiêu đề hiện một nhịp khi đổi bài rồi tan (tránh rối/rườm khi chuyển bài).
+      flashMeta() {
+        var self = this;
+        if (!this.metaEl) return;
+        this.metaEl.classList.add('show');
+        if (this.metaTimer) clearTimeout(this.metaTimer);
+        this.metaTimer = setTimeout(function() {
+          if (self.metaEl) self.metaEl.classList.remove('show');
+        }, 3800);
+      }
+
+      clearSlots() {
+        this.slotMap = {};
+        this.lineWords = {};
+        var t = this.trackEl;
+        while (t.firstChild) t.removeChild(t.firstChild);
+      }
+
+      setLyrics(synced, plain) {
+        this.clearSlots();
+        this.all = [];
+        this.activeIdx = -1;
+        this.base = 0;
+        this.plainMode = false;
+        this.trackEl.style.transform = '';
+        this.trackEl.className = 'np-lyrics-track';
+
+        if (synced) {
+          var parsed = this.parseLRC(synced);
+          if (parsed.length) {
+            this.all = parsed;      // [{ t, text }]
+            this.buildWheel(-1);    // dựng 4 dòng quanh đầu bài (chưa có active)
+            return;
+          }
+        }
+
+        if (plain) {
+          this.plainMode = true;
+          this.trackEl.className = 'np-lyrics-track flow';
+          var rows = String(plain).split('\n');
+          for (var i = 0; i < rows.length; i++) {
+            if (!rows[i].trim()) continue;
+            var d = document.createElement('div');
+            d.className = 'np-line';
+            d.textContent = rows[i];
+            this.trackEl.appendChild(d);
+          }
+          return;
+        }
+
+        this.plainMode = true;
+        this.trackEl.className = 'np-lyrics-track flow';
+        this.trackEl.style.transform = 'translate3d(0,' + (this.lyricsEl.clientHeight * 0.34) + 'px,0)';
+        var e = document.createElement('div');
+        e.className = 'np-line np-empty';
+        e.textContent = '♪ Đang phát';
+        this.trackEl.appendChild(e);
+      }
+
+      // Dựng "bánh xe" 4 dòng quanh dòng đang hát. Chỉ tối đa VIS node trong DOM
+      // (trước đây ~9, ban đầu 87 → TV yếu lag khi compositing). Dòng đang hát
+      // luôn ở slot thứ 2; các dòng khác trôi qua khi tiến bài.
+      buildWheel(activeIdx) {
+        var n = this.all.length, vis = this.VIS;
+        if (!n) return;
+        var base = (activeIdx < 0) ? 0 : (activeIdx - 1);
+        if (base > n - vis) base = n - vis;
+        if (base < 0) base = 0;
+        this.base = base;
+        this.trackEl.className = 'np-lyrics-track';
+        for (var i = base; i < base + vis && i < n; i++) this.addSlot(i, false);
+        this.layout(false);
+      }
+
+      addSlot(i, animate) {
+        var text = this.all[i].text || '♪';
+        var d = document.createElement('div');
+        d.className = 'np-line';
+        d.setAttribute('data-text', text);
+        this.lineWords[i] = this.fillWords(d, text);
+        if (animate) {
+          d.style.transition = 'none';
+          d.style.opacity = '0';
+          d.style.transform = 'translate3d(0,' + this.lyricsEl.clientHeight + 'px,0)';
+        }
+        this.trackEl.appendChild(d);
+        this.slotMap[i] = d;
+        if (animate) { void d.offsetHeight; d.style.transition = ''; }
+      }
+
+      removeSlot(i, animate) {
+        var el = this.slotMap[i];
+        delete this.slotMap[i];
+        delete this.lineWords[i];
+        if (!el) return;
+        if (!animate) { if (el.parentNode) el.parentNode.removeChild(el); return; }
+        var y = parseFloat(el.dataset.y) || 0;
+        el.style.transition = 'transform 0.42s ease, opacity 0.42s ease';
+        el.style.transform = 'translate3d(0,' + (y - el.offsetHeight - this.GAP) + 'px,0)';
+        el.style.opacity = '0';
+        setTimeout(function() { if (el.parentNode) el.parentNode.removeChild(el); }, 460);
+      }
+
+      // Trôi cửa sổ theo dòng đang hát: bỏ dòng trên cùng, thêm dòng dưới cùng,
+      // rồi bố cục lại. Bước ±1 animate mượt; nhảy xa (seek) đặt thẳng, không nhảy.
+      refreshWheel() {
+        var n = this.all.length, vis = this.VIS, idx = this.activeIdx;
+        if (!n) return;
+        var base = idx - 1;
+        if (base > n - vis) base = n - vis;
+        if (base < 0) base = 0;
+        var animate = Math.abs(base - this.base) <= 1;
+        var old = [];
+        for (var k in this.slotMap) old.push(+k);
+        for (var o = 0; o < old.length; o++) {
+          if (old[o] < base || old[o] > base + vis - 1) this.removeSlot(old[o], animate);
+        }
+        for (var j = base; j <= base + vis - 1 && j < n; j++) {
+          if (!this.slotMap[j]) this.addSlot(j, animate);
+        }
+        this.base = base;
+        this.layout(animate);
+      }
+
+      // Bố cục: xếp các slot thành khối giữa khung; mỗi dòng nghiêng 3D theo vị
+      // trí so với dòng đang hát (trên nghiêng tới, dưới nghiêng lui) -> parallax.
+      layout(animate) {
+        var H = this._H || this.lyricsEl.clientHeight;
+        var keys = [];
+        for (var k in this.slotMap) keys.push(+k);
+        keys.sort(function(a, b) { return a - b; });
+        var cnt = keys.length;
+        if (!cnt) return;
+        var hs = {}, total = 0, m, i;
+        for (m = 0; m < cnt; m++) {
+          // Đọc chiều cao (1 lần flush/ lần trôi). KHÔNG cache: dòng active
+          // đổi font-weight 700 nên có thể wrap khác -> cao khác.
+          hs[keys[m]] = this.slotMap[keys[m]].offsetHeight;
+          total += hs[keys[m]];
+        }
+        total += this.GAP * (cnt - 1);
+        var y = (H - total) / 2;
+        for (m = 0; m < cnt; m++) {
+          i = keys[m];
+          var el = this.slotMap[i];
+          var yy = Math.round(y);
+          el.style.transition = animate ? '' : 'none';
+          el.dataset.y = yy;
+          el.style.transform = 'translate3d(0,' + yy + 'px,0)' + this.tilt(i);
+          if (i === this.activeIdx) {
+            el.className = 'np-line active';
+            el.style.opacity = '1';
+          } else if (i < this.activeIdx) {
+            el.className = 'np-line past';
+            el.style.opacity = '0.42';
+          } else {
+            el.className = 'np-line';
+            el.style.opacity = '0.6';
+          }
+          y += hs[i] + this.GAP;
+        }
+      }
+
+      // Chỉ translate (rẻ): scale chữ buộc GPU raster lại glyph mỗi khung hình.
+      tilt(i) {
+        if (this.activeIdx < 0) return '';
+        if (i === this.activeIdx) return '';
+        return (i < this.activeIdx) ? ' translate3d(0,-6px,0)' : ' translate3d(0,6px,0)';
+      }
+
+      // BỎ highlight từng từ (thử nghiệm giảm tải): cả dòng là MỘT nút text.
+      fillWords(el, text) {
+        el.textContent = text;
+        return [];
+      }
+
+      // Tách [mm:ss.xx] -> {t, text}; bỏ dòng không có mốc thời gian.
+      parseLRC(text) {
+        var out = [];
+        var rows = String(text).split('\n');
+        var re = /\[(\d+):(\d+(?:\.\d+)?)\]/g;
+        for (var i = 0; i < rows.length; i++) {
+          var row = rows[i];
+          var m, stamps = [], last = 0;
+          re.lastIndex = 0;
+          while ((m = re.exec(row)) !== null) {
+            stamps.push(parseInt(m[1], 10) * 60 + parseFloat(m[2]));
+            last = re.lastIndex;
+          }
+          if (!stamps.length) continue;
+          var txt = row.substring(last).replace(/^\s+/, '');
+          for (var k = 0; k < stamps.length; k++) out.push({ t: stamps[k], text: txt });
+        }
+        out.sort(function(a, b) { return a.t - b.t; });
+        return out;
+      }
+
+      tick() {
+        if (!this.visible || !this.haveProgress || !this.all.length || this.plainMode) return;
+        var now = (window.performance && performance.now) ? performance.now() : Date.now();
+        var elapsed = this.baseElapsed + (now - this.basePerf) / 1000 - this.SYNC_OFFSET;
+        var idx = this.findIndex(elapsed);
+        if (idx !== this.activeIdx) {
+          this.activeIdx = idx;
+          if (idx >= 0) this.refreshWheel();   // bỏ/ thêm 1 dòng, bố cục lại
+        }
+        if (idx >= 0) this.progressLine(idx, elapsed);
+      }
+
+      findIndex(t) {
+        var a = this.all, lo = 0, hi = a.length - 1, ans = -1;
+        while (lo <= hi) {
+          var mid = (lo + hi) >> 1;
+          if (a[mid].t <= t) { ans = mid; lo = mid + 1; } else { hi = mid - 1; }
+        }
+        return ans;
+      }
+
+      // BỎ highlight từng từ (thử nghiệm giảm tải) — chỉ tô cả dòng theo class.
+      progressLine(idx, elapsed) { /* no-op */ }
+
+      // Tinh chỉnh độ lệch lời lúc chạy (không cần deploy lại): __np.setOffset(1.7)
+      setOffset(s) {
+        s = parseFloat(s);
+        if (isFinite(s)) this.SYNC_OFFSET = s;
+        return this.SYNC_OFFSET;
+      }
+
+      show() {
+        if (this.visible) return;
+        this.visible = true;
+        this._H = this.lyricsEl.clientHeight || this._H;
+        this.root.classList.add('visible');
+        this.startRaf();
+      }
+
+      hide() {
+        if (!this.visible) return;
+        this.visible = false;
+        this.root.classList.remove('visible');
+        this.stopRaf();
+      }
+
+      startRaf() {
+        var self = this;
+        if (this.rafId) return;
+        (function loop() {
+          self.rafId = requestAnimationFrame(loop);
+          self.tick();
+        })();
+      }
+
+      stopRaf() {
+        if (this.rafId) {
+          cancelAnimationFrame(this.rafId);
+          this.rafId = null;
+        }
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', function() {
+      window.__mtv = new MinimalTVOS();
+      window.__np = new NowPlaying();
+      if (window.PalmSystem && window.PalmSystem.activate) {
+        window.PalmSystem.activate();
+      }
+    });
+
+    document.addEventListener('webOSRelaunch', function(e) {
+      if (window.PalmSystem && window.PalmSystem.activate) {
+        window.PalmSystem.activate();
+      }
+      if (window.__mtv) {
+        window.__mtv.resume();
+      }
+    });
+
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden && window.__mtv) {
+        if (window.PalmSystem && window.PalmSystem.activate) {
+          window.PalmSystem.activate();
+        }
+        window.__mtv.resume();
+      }
+    });
+  </script>
+</body>
+</html>

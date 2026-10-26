@@ -1,0 +1,18 @@
+#!/bin/sh
+# 22-airplay -- start the shairport-sync AirPlay receiver at boot and keep it alive.
+# The setup is manual/non-persistent otherwise (no /opt symlink is possible: "/" is a
+# read-only overlay), so we drive it from start-airplay.sh and babysit it here.  Boot
+# races the system dbus/avahi socket, so the first attempts may fail -- keep retrying.
+LOG=/tmp/airplay-init.log
+: > "$LOG"
+echo "$(date) 22-airplay init" >> "$LOG"
+(
+  while true; do
+    if ! ps -eo args 2>/dev/null | grep -q "[s]hairport-sync"; then
+      echo "$(date) launching shairport-sync" >> "$LOG"
+      sh /var/lib/webosbrew/start-airplay.sh >> /tmp/airplay.log 2>&1 &
+      sleep 5
+    fi
+    sleep 10
+  done
+) >> "$LOG" 2>&1 &

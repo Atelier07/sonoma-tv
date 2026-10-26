@@ -1,0 +1,28 @@
+#!/bin/sh
+# 20-aerial-launcher
+#
+# Ensures Apple Aerial tvOS launcher (com.apple.aerial.tvos) owns foreground on cold boot.
+
+APP_ID="com.apple.aerial.tvos"
+LOG=/tmp/aerial-autostart.log
+LUNA=/usr/bin/luna-send
+
+echo "aerial-autostart: begin @ $(date)" >>"$LOG"
+
+(
+  boot_until=$(($(date +%s) + 25))
+  while [ "$(date +%s)" -lt "$boot_until" ]; do
+    fg=$("$LUNA" -a webosbrew -n 1 luna://com.webos.applicationManager/getForegroundAppInfo '{}' 2>/dev/null | grep -o '"appId":"[^"]*"' | cut -d'"' -f4)
+    echo "aerial-autostart: tick fg='${fg}' @ $(date)" >>"$LOG"
+
+    if [ "$fg" = "$APP_ID" ]; then
+      echo "aerial-autostart: launcher owns foreground! boot done @ $(date)" >>"$LOG"
+      break
+    fi
+
+    "$LUNA" -a webosbrew -f -n 1 luna://com.webos.applicationManager/launch "{\"id\":\"${APP_ID}\"}" >>"$LOG" 2>&1
+    sleep 1
+  done
+) </dev/null >>"$LOG" 2>&1 &
+
+exit 0

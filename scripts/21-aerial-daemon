@@ -1,0 +1,41 @@
+#!/bin/sh
+# 21-aerial-daemon — one Node process for the Aerial launcher:
+#   * HOME-button takeover (short press -> our launcher; hold 5s -> leave stock home in front)
+#   * reaper: gracefully close com.webos.app.fullhome while our app is foreground
+#   * AirPlay now-playing bridge (HTTP :8899)
+#
+# Replaces 21-aerial-homewatch (merged with the bridge to save a node runtime and
+# so the bridge survives reboot). No dot in the filename — run-parts skips dotted names.
+# Must run from the boot context so `luna-send -a webosbrew` is privileged.
+SCRIPT=/var/lib/webosbrew/aerial-daemon.js
+PIDF=/tmp/aerial-homewatch.pid
+PIDF2=/tmp/airplay-bridge.pid
+LOG=/tmp/aerial-daemon.log
+NODE=/usr/bin/node
+
+[ -f "$SCRIPT" ] || exit 0
+
+# stop any previous homewatch / bridge instance
+for f in "$PIDF" "$PIDF2"; do
+  [ -f "$f" ] && kill "$(cat "$f")" 2>/dev/null
+done
+
+nohup "$NODE" "$SCRIPT" </dev/null >>"$LOG" 2>&1 &
+echo $! > "$PIDF"
+
+# shairport-sync opens its metadata FIFO lazily, only when the first client streams. Until
+# then the FIFO has no writer and the daemon's read stream blocks forever, which wedges the
+# HTTP bridge (:8899 listens but never accepts). Hold a writer open so the reader never waits.
+# This must not run at the top level: run-parts starts us before 22-airplay, so the FIFO may
+# not exist yet and the redirect would create a regular file instead of a FIFO.
+(
+  i=0
+  while [ ! -p /tmp/shairport-sync-metadata ] && [ "$i" -lt 180 ]; do
+    i=$((i+1))
+    sleep 1
+  done
+  [ -p /tmp/shairport-sync-metadata ] || exit 0
+  exec 3>/tmp/shairport-sync-metadata
+  exec sleep 2147483647
+) </dev/null >/dev/null 2>&1 &
+exit 0
