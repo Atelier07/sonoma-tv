@@ -65,7 +65,7 @@ TV LG chạy mượt hơn nhờ dọn dẹp các service chạy ngầm không c�
 
 1. Clone repository về máy tính:
    ```bash
-   git clone https://github.com/congkiet90/sonoma-tv.git
+   git clone https://github.com/Atelier07/sonoma-tv.git
    cd sonoma-tv
    ```
 2. Mở file `scripts/deploy.sh`, điền địa chỉ IP của TV:
