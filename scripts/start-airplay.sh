@@ -11,5 +11,18 @@ export ALSA_CONFIG_PATH=$E/opt/share/alsa/alsa.conf
 # explicitly; without this shairport dies with "avahi client: Daemon not running".
 export DBUS_SYSTEM_BUS_ADDRESS="unix:path=/var/run/dbus/system_bus_socket"
 mkdir -p /var/run/shairport-sync 2>/dev/null
-exec "$L/ld-linux.so.3" --library-path "$L" \
+
+# Pre-create metadata FIFO if not exists to avoid race conditions with bridge
+[ -p /tmp/shairport-sync-metadata ] || mkfifo -m 666 /tmp/shairport-sync-metadata 2>/dev/null || true
+
+# Prioritize real-time audio scheduling:
+# Prevent CPU starvation from Chromium 4K rendering & VPU spikes
+SCHED_CMD=""
+if chrt -f 45 true 2>/dev/null; then
+  SCHED_CMD="chrt -f 45"
+elif nice -n -19 true 2>/dev/null; then
+  SCHED_CMD="nice -n -19"
+fi
+
+exec $SCHED_CMD "$L/ld-linux.so.3" --library-path "$L" \
      "$E/opt/bin/shairport-sync" -c "$E/opt/etc/shairport-sync.conf" "$@"

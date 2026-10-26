@@ -32,7 +32,15 @@ Thanh Dock kính tối bo cong, chứa các ứng dụng cài trên TV (YouTube,
 - Stream trực tiếp qua mạng LAN, không tốn bộ nhớ flash eMMC của TV.
 
 ### 3. Bộ thu AirPlay (Sonoma TV) & Đồng bộ lời bài hát
-- Tích hợp trình thu âm thanh AirPlay không nén
+- Tích hợp trình thu âm thanh AirPlay không nén (Shairport-Sync) đặt tên là **Sonoma TV**.
+- **Đã tối ưu hóa toàn diện & khắc phục triệt để lỗi đứt quãng / mất tiếng:**
+  - Chuyển sang `basic interpolation` thay vì `soxr` DSP nặng nề, giảm tải cho chip ARM Cortex-A53.
+  - Cấu hình ngưỡng `resync_threshold_in_seconds = 0.500s` (thay vì 0.050s) và `drift_tolerance = 0.008s`: ngăn Shairport-Sync xả sạch buffer và gây ngắt tiếng đột ngột khi Wi-Fi có jitter.
+  - Mở rộng bộ đệm ALSA lên `0.35s` (`audio_backend_buffer_desired_length_in_seconds`) giúp âm thanh mượt mà.
+  - Bật `disable_standby_mode = "always"` giữ DAC âm thanh luôn mở, chống hiện tượng nấc cụt hoặc mất tiếng đầu bài.
+  - Cấp quyền ưu tiên tiến trình thời gian thực (`chrt -f 45` / `nice -n -19`): giải mã âm thanh không bao giờ bị tranh chấp CPU bởi Chromium hay chip VPU.
+  - Thêm `pipe_timeout = 5000ms` và nâng đệm FIFO lên 4MB: chống treo/nghẽn luồng khi truyền tải ảnh bìa kích thước lớn từ Apple Music.
+  - Thuật toán bù trôi mượt (smooth nudge) cho lời bài hát đồng bộ: chuyển câu mượt mà, không giật nhảy vị trí.
 - Tự động hiển thị bìa album, tên bài hát và lời bài hát chạy chữ từng câu chuẩn phong cách Apple Music.
 
 ### 4. Tinh chỉnh hệ thống & Debloat (10-debloat)
@@ -41,7 +49,7 @@ TV LG chạy mượt hơn nhờ dọn dẹp các service chạy ngầm không c�
 - **Dừng các service theo dõi & quảng cáo của LG:** `uploadd`, `rdxd`, `admanager`, `contentminer`, `crashreportd`, `webos-preload-manager`...
 - **Tối ưu Linux Kernel (`sysctl`):**
   - `vm.swappiness=15`: Giữ RAM vật lý cho app, hạn chế ghi swap ra bộ nhớ flash eMMC giúp tăng tuổi thọ chip nhớ.
-  - `net.core.rmem_max=4194304` & buffer UDP: Mở rộng bộ đệm mạng cho video 4K bitrate cao và luồng nhạc AirPlay.
+  - `net.core.rmem_max=8388608` & `netdev_max_backlog=5000`: Mở rộng hàng đợi và bộ đệm mạng cho video 4K bitrate cao và gói tin UDP AirPlay.
 
 ---
 

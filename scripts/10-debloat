@@ -3,14 +3,15 @@
 mount --bind /var/lib/webosbrew/hosts /etc/hosts 2>/dev/null || true
 
 # 1. Network Buffer Tuning for 4K Video Streaming & Low-Jitter AirPlay Audio (UDP)
-sysctl -w net.core.rmem_max=4194304 2>/dev/null || true
-sysctl -w net.core.rmem_default=524288 2>/dev/null || true
-sysctl -w net.core.wmem_max=4194304 2>/dev/null || true
-sysctl -w net.core.wmem_default=524288 2>/dev/null || true
+sysctl -w net.core.rmem_max=8388608 2>/dev/null || true
+sysctl -w net.core.rmem_default=1048576 2>/dev/null || true
+sysctl -w net.core.wmem_max=8388608 2>/dev/null || true
+sysctl -w net.core.wmem_default=1048576 2>/dev/null || true
 sysctl -w net.ipv4.tcp_rmem="4096 87380 4194304" 2>/dev/null || true
 sysctl -w net.ipv4.tcp_wmem="4096 65536 4194304" 2>/dev/null || true
-sysctl -w net.ipv4.udp_rmem_min=16384 2>/dev/null || true
-sysctl -w net.ipv4.udp_wmem_min=16384 2>/dev/null || true
+sysctl -w net.ipv4.udp_rmem_min=32768 2>/dev/null || true
+sysctl -w net.ipv4.udp_wmem_min=32768 2>/dev/null || true
+sysctl -w net.core.netdev_max_backlog=5000 2>/dev/null || true
 
 # 2. Virtual Memory & Swap Optimization (Reduces slow eMMC thrashing & lag)
 sysctl -w vm.swappiness=15 2>/dev/null || true

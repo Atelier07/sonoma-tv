@@ -1843,14 +1843,18 @@
         if (pos !== null) {
           var nowms = (window.performance && performance.now) ? performance.now() : Date.now();
           // Vị trí nội suy từ mốc neo cũ (KHÔNG trừ offset — offset chỉ áp khi
-          // chọn dòng lời). Chỉ neo lại khi lệch > 0.25s (seek/trôi thật) để
-          // tránh giật nhỏ mỗi 1.5s do nhiễu mạng.
+          // chọn dòng lời). Khi lệch > 0.5s (seek hoặc đổi bài) mới neo cứng lại;
+          // nếu chỉ lệch nhẹ (jitter mạng 0.05s - 0.5s) thì bù trôi mượt (smooth nudge)
+          // để tránh giật nhảy dòng lời mỗi nhịp poll.
           var predicted = this.baseElapsed + (nowms - this.basePerf) / 1000;
-          if (!this.haveProgress || Math.abs(pos - predicted) > 0.25) {
+          var diff = pos - predicted;
+          if (!this.haveProgress || Math.abs(diff) > 0.5) {
             this.baseElapsed = pos;
             this.basePerf = nowms;
             this.haveProgress = true;
             this.lastPos = pos;
+          } else if (Math.abs(diff) > 0.05) {
+            this.baseElapsed += diff * 0.15;
           }
         }
         if (this.haveProgress) this.tick();

@@ -187,7 +187,10 @@ function processItemBody(body) {
 }
 
 function parseBuf() {
-  if (buf.indexOf('</item>') === -1) { return; }
+  if (buf.indexOf('</item>') === -1) {
+    if (buf.length > 4000000) { buf = ''; }
+    return;
+  }
   var re = /<item>([\s\S]*?)<\/item>/g;
   var m, consumed = 0;
   while ((m = re.exec(buf)) !== null) {
@@ -195,7 +198,7 @@ function parseBuf() {
     consumed = re.lastIndex;
   }
   if (consumed > 0) { buf = buf.substring(consumed); }
-  if (buf.length > 1000000) { buf = ''; }
+  if (buf.length > 4000000) { buf = ''; }
 }
 
 function openPipe() {
