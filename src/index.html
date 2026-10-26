@@ -2239,7 +2239,7 @@
       // BỎ highlight từng từ (thử nghiệm giảm tải) — chỉ tô cả dòng theo class.
       progressLine(idx, elapsed) { /* no-op */ }
 
-      // Tinh chỉnh độ lệch lời lúc chạy (không cần deploy lại): __np.setOffset(1.7)
+      // Tinh chỉnh độ lệch lời lúc chạy nếu muốn (mặc định luôn là 0.0s đồng đều): __np.setOffset(0.0)
       setOffset(s) {
         s = parseFloat(s);
         if (isFinite(s)) this.SYNC_OFFSET = s;
