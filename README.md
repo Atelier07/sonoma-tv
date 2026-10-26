@@ -1,134 +1,92 @@
-# Sonoma TV — Minimal Apple TV (tvOS) Experience for LG webOS
+# Sonoma TV — tvOS Minimal Launcher cho LG Smart TV (webOS)
 
-Giao diện khởi chạy phong cách Apple TV (tvOS) tối giản, siêu mượt dành cho Smart TV LG (webOS 4.5 / NanoCell 4K). Tích hợp video nền 4K chạy trực tiếp trên tầng phần cứng VPU (Australia ISS, Yosemite, Patagonia, Biển nhiệt đới, Cực quang), đồng hồ cỡ lớn, thời tiết thời gian thực, AirPlay Now Playing với lời bài hát đồng bộ (Synced Lyrics) và thanh Dock 10 ứng dụng thật trên TV (bao gồm kho Root **Homebrew Channel**).
-
-## 🎬 Trải nghiệm thực tế (Showcase)
-
-### 1. Giao diện Launcher & Dock Ứng dụng
-![Sonoma TV Launcher Demo](docs/videos/sonoma_launcher_demo.gif)
-
-### 2. Giao diện AirPlay & Lời bài hát đồng bộ (Apple Music Style)
-![Sonoma TV AirPlay Demo](docs/videos/sonoma_airplay_demo.gif)
+Dự án thay thế launcher mặc định trên Smart TV LG bằng giao diện tối giản phong cách Apple TV (tvOS), tích hợp trình phát nhạc AirPlay hiển thị lời bài hát đồng bộ (Synced Lyrics) và kho video nền 4K Apple Aerial.
 
 ---
 
-## 📺 Thông số thiết bị mục tiêu
+## 📸 Hình ảnh thực tế (Showcase)
 
-- **Model:** LG 49SM8100PTA (NanoCell 4K, 49 inch)
-- **Hệ điều hành:** LG webOS 4.10.0 (webOS 4.5)
-- **Kernel:** Linux `armv7l` (Linux 4.4.84)
-- **Trình duyệt Web:** Chromium 53 (Chrome 53.0.2785.34)
-- **IP cục bộ:** `192.168.1.6`
-- **Tên phát AirPlay:** **Sonoma TV**
-- **Tình trạng:** **ĐÃ ROOT VĨNH VIỄN (`uid=0`, `root`)**
+### 1. Giao diện phát nhạc AirPlay & Lời bài hát đồng bộ thời gian thực
+Bìa album sắc nét, tên bài hát và lời chạy chữ đồng bộ tự động nổi trên nền video 4K:
+![AirPlay La La Land](docs/screenshots/lalaland_chorus.jpg)
 
----
-
-## ⚡ Tính năng nổi bật
-
-1. **Video nền 4K xoay vòng (Tuyển chọn Apple Aerial & ISS Space):**
-   - Sử dụng cơ chế **Hardware Overlay Plane (VPU Hole-Punching)** của webOS. Video giải mã độc lập bằng chip phần cứng, hoàn toàn không tốn CPU hay GPU của giao diện.
-   - **83 tuyệt phẩm 4K HEVC chính chủ Apple**: Thiên nhiên hùng vĩ (Yosemite, Iceland, Grand Canyon, Patagonia...), 21 góc quay từ Trạm vũ trụ Quốc tế ISS (Australia, Africa Night, Cực quang Nam Cực...) và Đại dương (Cá voi lưng gù, Cá heo Costa Rica, San hô Biển Đỏ). Đã loại bỏ sạch sẽ 31 clip đô thị và kẹt xe!
-   - **Stream trực tiếp qua mạng LAN, không ghi vào ROM.** **Chuyển cảnh liền mạch, không cắt đen**: dùng **2 tầng video** — tầng đang chiếu và tầng ngầm. Ngay khi clip hiện tại bắt đầu phát, tầng ngầm nạp trước clip kế ở chế độ **chỉ đọc metadata (`preload="metadata"`)** nên **không cướp decoder** của tầng đang chiếu; tới lúc gần hết, tầng ngầm (đã đủ dữ liệu) **tiếp quản tức thì**.
-   - **Chống màn hình đen:** lớp dip chỉ còn dùng khi cần buffer lại (khởi động nguội / lỗi mạng), không dùng cho chuyển clip thường. Và lớp dip không phải `#000` — đây là **nền Aerial động vẽ bằng CSS** (dải aurora xanh-teal trôi chậm trên gradient đêm, chỉ animate `transform`/`opacity` nên không tốn decoder). Vì VPU chỉ giải mã **1 video tại một lúc**, nền CSS này che khoảng **~2–4s** lúc nạp clip 4K đầu tiên và cả lúc cold start sau khi mở app khác.
-   - **Fallback offline:** mất mạng → tự rơi về clip **Dubai nhúng sẵn**; clip lỗi → tự nhảy sang clip kế.
-2. **Giao diện Apple TV — Icon màu trên ô kính tối:**
-   - Thẻ ứng dụng dạng ngang tỉ lệ 3:2 bo cong mềm mại (`156px x 104px`, `border-radius: 26px`), cách nhau `26px`.
-   - Mỗi ô là một khối kính tối (gradient xám đậm + viền sáng + sheen), ở giữa đặt một **icon ứng dụng màu bo vuông** (`--icon-bg` gradient thương hiệu + glyph SVG trắng) — đúng phong cách tvOS, nhìn sang và "đắt tiền".
-   - **Dock mặc định ẩn** cho ngắm trọn video nền; chạm *bất kỳ* nút nào trên remote là Dock trượt lên, tự ẩn lại sau ~5 giây không bấm.
-3. **100% App thật từ TV:**
-   - Lấy trực tiếp từ hệ thống: *YouTube, Spotify, Apple Music, Trình duyệt web, Web Video Caster, Bảng điều khiển nhà, Ảnh & Video, Âm nhạc, LG Content Store, Homebrew Channel*.
-4. **Hiệu năng 60fps tuyệt đối:**
-   - Đã loại bỏ các hiệu ứng gây nghẽn GPU như `backdrop-filter: blur()`.
-   - Cuộn Dock bằng `translate3d` trên GPU và vị trí focus tính bằng toán học thuần túy $O(1)$ (cache layout một lần), triệt tiêu Layout Thrashing. Focus chỉ animate `transform`/`opacity`.
-5. **Đồng hồ & Thời tiết cỡ lớn:**
-   - Đồng hồ 68px Bold rõ nét, nhiệt độ thời tiết cập nhật trực tiếp từ Open-Meteo API, dễ đọc từ khoảng cách ghế sofa 3m.
+### 2. Giao diện Launcher chính & Thanh Dock ứng dụng
+Thanh Dock kính tối bo cong, chứa các ứng dụng cài trên TV (YouTube, Spotify, Apple Music, Homebrew Channel...):
+![Launcher Dock Showcase](docs/screenshots/launcher_showcase.jpg)
 
 ---
 
-## 🎮 Hướng dẫn điều khiển (Remote Control)
+## ⚡ Các tính năng chính
 
-| Phím bấm | Chức năng |
+### 1. Thay thế Launcher gốc & Khởi động tức thì (~0.05s)
+- **Neo boot cấp hệ thống (`bootd.json`):** Cấu hình trực tiếp vào `/var/luna/preferences/bootd.json` để hệ thống webOS nhận diện Sonoma TV là ứng dụng khởi động mặc định.
+- **Bỏ qua CoverUI:** Khắc phục triệt để lỗi treo màn hình đen hoặc banner chờ 30 giây của LG khi bật TV.
+- **Mở máy tức thì:** Khi TV ở chế độ Standby (Quick Start+), bấm Remote là màn hình sáng lên và vào thẳng giao diện trong ~0.05 giây.
+- **Bắt phím HOME trên Remote:**
+  - Nhấn nhanh: Quay về Sonoma TV launcher.
+  - Nhấn giữ 3 giây: Mở lại thanh Ribbon gốc của LG khi cần cài đặt hệ thống.
+
+### 2. Tuyển chọn 83 video nền 4K Apple Aerial (Không rác đô thị)
+- Sử dụng cơ chế giải mã phần cứng **VPU Hole-Punching** của webOS: video chạy trực tiếp trên chip giải mã, không tốn tài nguyên CPU/GPU của giao diện.
+- Stream trực tiếp qua mạng LAN, không tốn bộ nhớ flash eMMC của TV.
+- **Đã thanh lọc kỹ lưỡng:**
+  - Giữ lại toàn bộ **21 góc quay từ Trạm vũ trụ Quốc tế ISS** (Australia, Cực quang Nam Cực, Africa Night, Sahara...).
+  - Giữ lại các cảnh thiên nhiên kỳ vĩ: *Yosemite, Iceland, Patagonia, Hawaii, Grand Canyon, Greenland, Scotland...*
+  - Giữ lại các cảnh đại dương: *Cá voi lưng gù, Cá heo Costa Rica, Rạn san hô Biển Đỏ, Sóng biển Tahiti...*
+  - **Loại bỏ sạch 31 video đô thị/kẹt xe** (Los Angeles đường cao tốc, San Francisco sương mù, New York, London, Dubai...).
+- Cơ chế **2 tầng video ngầm** giúp chuyển cảnh mượt mà, không bị giật hay cắt đen màn hình.
+
+### 3. Bộ thu AirPlay (Sonoma TV) & Đồng bộ lời bài hát
+- Tích hợp trình thu âm thanh AirPlay không nén (Shairport-Sync) đặt tên là **Sonoma TV**.
+- **Đã khắc phục lỗi đứt quãng / mất tiếng:**
+  - Chuyển thuật toán nội suy sang `basic interpolation` (thay vì `soxr` nặng nề) để giảm tải cho chip ARM Cortex-A53 của TV.
+  - Mở rộng bộ đệm ALSA lên `0.35s` (`audio_backend_buffer_desired_length_in_seconds`) giúp âm thanh mượt mà, không bị giật khi mạng Wi-Fi biến động.
+  - Bật `disable_standby_mode = "always"` giữ DAC âm thanh luôn mở, chống hiện tượng nấc cụt hoặc mất tiếng đầu bài.
+- Tự động hiển thị bìa album, tên bài hát và lời bài hát chạy chữ từng câu chuẩn phong cách Apple Music.
+
+### 4. Tinh chỉnh hệ thống & Debloat (10-debloat)
+TV LG chạy mượt hơn nhờ dọn dẹp các service chạy ngầm không cần thiết:
+- **Tắt AirPlay & HomeKit mặc định của LG:** Ngăn chặn xung đột và hiện tượng trùng lặp 2 luồng AirPlay trên iPhone/Mac.
+- **Dừng các service theo dõi & quảng cáo của LG:** `uploadd`, `rdxd`, `admanager`, `contentminer`, `crashreportd`, `webos-preload-manager`...
+- **Tối ưu Linux Kernel (`sysctl`):**
+  - `vm.swappiness=15`: Giữ RAM vật lý cho app, hạn chế ghi swap ra bộ nhớ flash eMMC giúp tăng tuổi thọ chip nhớ.
+  - `net.core.rmem_max=4194304` & buffer UDP: Mở rộng bộ đệm mạng cho video 4K bitrate cao và luồng nhạc AirPlay.
+
+---
+
+## 🛠️ Yêu cầu thiết bị
+
+- Smart TV LG đã Root (có **Homebrew Channel** và SSH Port 22).
+- Đã kiểm nghiệm hoàn hảo trên **LG 49SM8100PTA** (webOS 4.5 / Linux 4.4.84 armv7l).
+
+---
+
+## 🚀 Hướng dẫn cài đặt (Deploy)
+
+1. Clone repository về máy tính:
+   ```bash
+   git clone https://github.com/congkiet90/sonoma-tv.git
+   cd sonoma-tv
+   ```
+2. Mở file `scripts/deploy.sh`, điền địa chỉ IP của TV:
+   ```bash
+   TV_IP="192.168.1.x"
+   ```
+3. Chạy lệnh cài đặt 1-click:
+   ```bash
+   ./scripts/deploy.sh
+   ```
+Script sẽ tự động đẩy toàn bộ file giao diện, cấu hình khởi động `bootd.json`, bộ thu AirPlay và các daemon tối ưu lên TV.
+
+---
+
+## 🎮 Phím tắt điều khiển Remote
+
+| Phím | Chức năng |
 | :--- | :--- |
-| **Bất kỳ nút nào trên remote** | Đánh thức Dock trượt lên (Dock mặc định ẩn; tự ẩn lại sau ~5s không bấm) |
-| **Trái / Phải (D-pad Left/Right)** | Di chuyển mượt mà giữa các ứng dụng trên Dock |
-| **OK / Enter** | Mở ứng dụng tương ứng ngay lập tức qua webOS Service Bridge |
-| **Lên (D-pad Up) / Nút thu gọn (mũi tên xuống)** | Ẩn thanh Dock xuống đáy màn hình để ngắm trọn video 4K |
-| **Tab mũi tên lên ở đáy** | Chạm để mở lại Dock khi đang ẩn |
-| **HOME (nhấn nhanh)** | Quay về launcher Aerial (thay vì Home gốc) — xem mục *Chiếm quyền nút Home* |
-| **HOME (giữ ≥ 5 giây)** | Về Home gốc của webOS |
-
----
-
-## ⌂ Chiếm quyền nút Home & Neo Khởi động Tức thì (~0.05s)
-
-- **Neo Boot cấp hệ thống (`config/bootd.json`):**
-  - Hệ thống sử dụng file `/var/luna/preferences/bootd.json` để cấu hình bộ quản lý khởi động chính thức `/usr/sbin/bootd` của webOS.
-  - Ánh xạ trực tiếp Launcher vào danh mục `inputApps` và đặt `remoteKey: "{LAST_APP}"`.
-  - Giúp TV **bỏ qua hoàn toàn CoverUI**, không bị màn hình chờ 30 giây, bật TV từ Standby là sáng màn hình và vào thẳng Launcher trong **0.05 giây**.
-- **Cơ chế Wake-up mượt mà (`appinfo.json` & `src/index.html`):**
-  - Cấu hình `"handlesRelaunch": false` cùng bộ lắng nghe `webOSRelaunch` và `visibilitychange` tự động gọi `PalmSystem.activate()`, triệt tiêu hoàn toàn hiện tượng đen màn hình khi TV thức giấc.
-- **`scripts/aerial-daemon.js`** — Daemon chạy nền duy nhất:
-  - Bắt trực tiếp `/dev/input/event*` phím **HOME (773)**:
-    - **Nhấn nhanh:** Đưa Apple TV Launcher trở lại tiền cảnh.
-    - **Giữ ≥ 3 giây:** Mở Launcher gốc của webOS (`com.webos.app.home`).
-  - Tích hợp HTTP bridge đồng bộ lời bài hát AirPlay trên cổng 8899.
-- **`scripts/20-aerial-launcher`** — init.d tự động đưa Launcher lên tiền cảnh trong các tình huống khởi động nguội (cold boot).
-- **`scripts/10-debloat`** — Tối ưu bộ nhớ RAM, Swappiness, bộ đệm stream 4K và chặn sạch quảng cáo / telemetry của LG.
-
----
-
-## 🛠️ Cấu trúc thư mục dự án
-
-```text
-webos-tvos-launcher/
-├── README.md                 # Tài liệu tổng quan
-├── CONTEXT_HANDOVER.md       # Báo cáo bảo lưu context & nhật ký kỹ thuật
-├── DEEPSEEK_GUIDE.md         # Bản hướng dẫn toàn diện cho AI
-├── appinfo.json              # webOS App Manifest (QuickStart, NoSplash)
-├── src/
-│   ├── index.html            # Giao diện chính (HTML5/CSS/JS, PalmSystem.activate)
-│   ├── aerials.json          # Catalog 114 clip Apple Aerial 4K HEVC
-│   └── fonts/                # Bộ font Museo, Inter, Cormorant
-├── scripts/
-│   ├── fetch_aerials.py      # Tải manifest Apple → sinh src/aerials.json
-│   ├── build.py              # Script dựng và tối ưu HTML (nhúng AERIALS inline)
-│   ├── deploy.sh             # Script 1-click đẩy code, config, daemon lên TV
-│   ├── reload_cdp.py         # Nạp lại trang và chụp ảnh màn hình TV (port 9998)
-│   ├── test_remote.py        # Giả lập phím điều khiển từ xa qua WebSocket
-│   ├── aerial-daemon.js      # Daemon bắt nút HOME, quản lý nguồn và AirPlay
-│   ├── 10-debloat            # Tinh chỉnh hiệu năng RAM, mạng, chặn ads LG
-│   └── 20-aerial-launcher    # Tự mở Launcher lúc cold boot
-├── config/
-│   ├── bootd.json            # File neo boot chính thức của bootd LG TV
-│   ├── tv_specs.json         # Thông số kết nối TV, IP, Port, SSH key, Root status
-│   └── tv_real_apps.json     # Danh mục launch points của TV
-└── docs/
-    ├── plans/                # Kế hoạch kỹ thuật & giải pháp chi tiết
-    ├── root_and_security.md  # Chi tiết giải pháp Root và chống xóa app
-    ├── audio_lyrics_roadmap.md # Kế hoạch làm Spotify Connect & Synced Lyrics
-    └── screenshots/          # Hình ảnh thực tế TV
-```
-
----
-
-## 🚀 Cách triển khai (Deployment)
-
-Chạy lệnh deploy 1-click lên TV qua SSH Root:
-```bash
-./scripts/deploy.sh
-```
-
-Kiểm tra hoặc chụp ảnh màn hình TV từ xa:
-```bash
-python3 ./scripts/reload_cdp.py
-```
-
-Giả lập phím bấm Remote từ máy tính:
-```bash
-python3 ./scripts/test_remote.py right
-python3 ./scripts/test_remote.py left
-python3 ./scripts/test_remote.py up
-python3 ./scripts/test_remote.py down
-python3 ./scripts/test_remote.py enter
-```
+| **Bất kỳ phím nào** | Đánh thức thanh Dock trượt lên (tự ẩn sau 5 giây không bấm) |
+| **D-pad Trái / Phải** | Di chuyển giữa các ứng dụng trên Dock |
+| **OK / Enter** | Mở ứng dụng |
+| **D-pad Lên** | Ẩn thanh Dock ngay lập tức để ngắm trọn video |
+| **HOME (bấm nhanh)** | Quay về màn hình chính Sonoma TV |
+| **HOME (giữ 3 giây)** | Mở thanh Home gốc của LG |
