@@ -1,8 +1,14 @@
-# Apple TV (tvOS) Minimal Launcher for LG webOS Smart TV
+# Sonoma TV — Minimal Apple TV (tvOS) Experience for LG webOS
 
-Giao diện khởi chạy phong cách Apple TV (tvOS) tối giản, siêu mượt dành cho Smart TV LG (webOS 4.5 / NanoCell 4K). Tích hợp video nền 4K chạy trực tiếp trên tầng phần cứng VPU, đồng hồ cỡ lớn, thời tiết thời gian thực và thanh Dock chứa 10 ứng dụng thật trên TV (bao gồm kho ứng dụng Root **Homebrew Channel**).
+Giao diện khởi chạy phong cách Apple TV (tvOS) tối giản, siêu mượt dành cho Smart TV LG (webOS 4.5 / NanoCell 4K). Tích hợp video nền 4K chạy trực tiếp trên tầng phần cứng VPU (Australia ISS, Yosemite, Patagonia, Biển nhiệt đới, Cực quang), đồng hồ cỡ lớn, thời tiết thời gian thực, AirPlay Now Playing với lời bài hát đồng bộ (Synced Lyrics) và thanh Dock 10 ứng dụng thật trên TV (bao gồm kho Root **Homebrew Channel**).
 
-![Live Screenshot](docs/screenshots/tv_screenshot_hd.jpg)
+## 🎬 Trải nghiệm thực tế (Showcase)
+
+### 1. Giao diện Launcher & Dock Ứng dụng
+![Sonoma TV Launcher Demo](docs/videos/sonoma_launcher_demo.gif)
+
+### 2. Giao diện AirPlay & Lời bài hát đồng bộ (Apple Music Style)
+![Sonoma TV AirPlay Demo](docs/videos/sonoma_airplay_demo.gif)
 
 ---
 
@@ -13,15 +19,16 @@ Giao diện khởi chạy phong cách Apple TV (tvOS) tối giản, siêu mượ
 - **Kernel:** Linux `armv7l` (Linux 4.4.84)
 - **Trình duyệt Web:** Chromium 53 (Chrome 53.0.2785.34)
 - **IP cục bộ:** `192.168.1.6`
+- **Tên phát AirPlay:** **Sonoma TV**
 - **Tình trạng:** **ĐÃ ROOT VĨNH VIỄN (`uid=0`, `root`)**
 
 ---
 
 ## ⚡ Tính năng nổi bật
 
-1. **Video nền 4K xoay vòng (Apple Aerial):**
+1. **Video nền 4K xoay vòng (Tuyển chọn Apple Aerial & ISS Space):**
    - Sử dụng cơ chế **Hardware Overlay Plane (VPU Hole-Punching)** của webOS. Video giải mã độc lập bằng chip phần cứng, hoàn toàn không tốn CPU hay GPU của giao diện.
-   - **Toàn bộ 114 clip 4K HEVC SDR chính chủ Apple** (`url-4K-SDR`, giải mã bằng VPU) — phát hết đoạn này thì tự đổi sang đoạn khác, xáo trộn ngẫu nhiên, lặp vô hạn. Nguồn: `src/aerials.json` (sinh bằng `scripts/fetch_aerials.py`).
+   - **83 tuyệt phẩm 4K HEVC chính chủ Apple**: Thiên nhiên hùng vĩ (Yosemite, Iceland, Grand Canyon, Patagonia...), 21 góc quay từ Trạm vũ trụ Quốc tế ISS (Australia, Africa Night, Cực quang Nam Cực...) và Đại dương (Cá voi lưng gù, Cá heo Costa Rica, San hô Biển Đỏ). Đã loại bỏ sạch sẽ 31 clip đô thị và kẹt xe!
    - **Stream trực tiếp qua mạng LAN, không ghi vào ROM.** **Chuyển cảnh liền mạch, không cắt đen**: dùng **2 tầng video** — tầng đang chiếu và tầng ngầm. Ngay khi clip hiện tại bắt đầu phát, tầng ngầm nạp trước clip kế ở chế độ **chỉ đọc metadata (`preload="metadata"`)** nên **không cướp decoder** của tầng đang chiếu; tới lúc gần hết, tầng ngầm (đã đủ dữ liệu) **tiếp quản tức thì**.
    - **Chống màn hình đen:** lớp dip chỉ còn dùng khi cần buffer lại (khởi động nguội / lỗi mạng), không dùng cho chuyển clip thường. Và lớp dip không phải `#000` — đây là **nền Aerial động vẽ bằng CSS** (dải aurora xanh-teal trôi chậm trên gradient đêm, chỉ animate `transform`/`opacity` nên không tốn decoder). Vì VPU chỉ giải mã **1 video tại một lúc**, nền CSS này che khoảng **~2–4s** lúc nạp clip 4K đầu tiên và cả lúc cold start sau khi mở app khác.
    - **Fallback offline:** mất mạng → tự rơi về clip **Dubai nhúng sẵn**; clip lỗi → tự nhảy sang clip kế.
