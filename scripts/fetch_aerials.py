@@ -43,6 +43,15 @@ TARBALLS = [
 
 WANT = 114         # how many clips to keep in the rotation (114 = full Apple catalog)
 ALLOWED_COUNTRIES = None  # None = no filter
+EXCLUDE_LABELS = {
+    "Los Angeles",
+    "San Francisco",
+    "New York",
+    "New York Night",
+    "London",
+    "Dubai",
+    "Hong Kong",
+}
 
 
 def fetch_entries():
@@ -83,8 +92,11 @@ def build():
         if shot in seen:
             continue
         seen.add(shot)
+        lbl = clean_label(a)
+        if lbl in EXCLUDE_LABELS:
+            continue
         clips.append({
-            "label": clean_label(a),
+            "label": lbl,
             "shotID": shot,
             "url": url,
         })
